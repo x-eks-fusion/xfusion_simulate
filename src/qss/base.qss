@@ -1,0 +1,31 @@
+
+AddButton {
+    image: url('./src/icons/add.png');
+    border:none;
+}
+
+AddButton:hover {
+    image: url('./src/icons/add_hover.png');
+    border:none;
+}
+
+AddButton:pressed {
+    image: url('./src/icons/add_pressed.png');
+    border:none;
+}
+
+
+MinusButton {
+    image: url('./src/icons/minus.png');
+    border:none;
+}
+
+MinusButton:hover {
+    image: url('./src/icons/minus_hover.png');
+    border:none;
+}
+
+MinusButton:pressed {
+    image: url('./src/icons/minus_pressed.png');
+    border:none;
+}
