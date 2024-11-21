@@ -1,6 +1,7 @@
 import json
 from os.path import abspath
 
+
 class Config:
     """
     配置管理类，提供只读动态配置管理，支持单例模式。
@@ -42,7 +43,7 @@ class Config:
         if self.config.get("EditorConfig") is None:
             raise ValueError("配置文件中缺少 EditorConfig 部分。")
         return self.config["EditorConfig"]
-    
+
     @property
     def NodeConfig(self):
         """
@@ -53,7 +54,18 @@ class Config:
         if self.config.get("NodeConfig") is None:
             raise ValueError("配置文件中缺少 NodeConfig 部分。")
         return self.config["NodeConfig"]
-    
+
+    @property
+    def PinConfig(self):
+        """
+        返回当前NodeConfig配置，确保配置已被加载。
+        """
+        if self.config is None:
+            raise ValueError("配置尚未初始化，请调用 init() 方法加载配置。")
+        if self.config.get("PinConfig") is None:
+            raise ValueError("配置文件中缺少 PinConfig 部分。")
+        return self.config["PinConfig"]
+
     @property
     def GroupConfig(self):
         """
@@ -77,7 +89,7 @@ class Config:
             raise FileNotFoundError(f"配置文件未找到：{file_path}")
         except json.JSONDecodeError:
             raise ValueError(f"配置文件格式错误：{file_path}")
-    
+
     def reload(self):
         """
         重新加载配置文件，覆盖当前配置。
@@ -90,4 +102,3 @@ if __name__ == "__main__":
     config = Config()
     config.init("config.json")
     print(config.config)
-

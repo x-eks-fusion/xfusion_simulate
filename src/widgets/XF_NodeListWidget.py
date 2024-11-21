@@ -7,8 +7,9 @@ from tools.XF_QssLoader import QSSLoadTool
 节点树控件
 """
 
+
 class NodeListWidget(QTreeWidget):
-    def __init__(self, data:dict, parent=None, dragEnabled=False):
+    def __init__(self, data: dict, parent=None, dragEnabled=False):
         super().__init__(parent)
 
         self.data = data

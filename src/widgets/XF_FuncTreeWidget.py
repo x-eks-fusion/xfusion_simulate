@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QTreeWidgetItem
 左上角的函数树控件
 """
 
+
 class FuncTreeWidget(ItemTreeWidget):
 
     def setupMenuActions(

@@ -17,10 +17,22 @@
     "NodeConfig": {
         "port_icon_size": 25,
         "node_title_back_color": {
-            "Action Default": "#f5232e",
-            "Basic Operation": "#88df00",
-            "Node Converter": "#fa8b17",
-            "Basic Control": "#4e90fe"
+            "NC": "#ffffff",
+            "Input": "#f5232e",
+            "Output": "#88df00",
+            "INPUT_OUTPUT": "#fa8b17",
+            "VCC": "#4e90fe",
+            "GND": "#212121"
+        }
+    },
+    "PinConfig":{
+        "pin_color": {
+            "NC": "#ffffff",
+            "Input": "#f5232e",
+            "Output": "#88df00",
+            "INPUT_OUTPUT": "#fa8b17",
+            "VCC": "#4e90fe",
+            "GND": "#212121"
         }
     },
     "GroupConfig": {

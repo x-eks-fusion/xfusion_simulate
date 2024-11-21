@@ -1,11 +1,11 @@
-#coding:utf-8
+# coding:utf-8
 '''
 QGraphicsScene的子类
 
 '''
 from PySide6.QtWidgets import QGraphicsScene
-from PySide6.QtGui import QBrush,QColor,QPen
-from PySide6.QtCore import Qt,QLine
+from PySide6.QtGui import QBrush, QColor, QPen
+from PySide6.QtCore import Qt, QLine
 import math
 import PySide6
 from base.XF_Config import Config
@@ -14,9 +14,10 @@ from base.XF_Config import Config
 中央场景控件
 """
 
+
 class VisualGraphScene(QGraphicsScene):
 
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
 
         super().__init__(parent)
         config = Config()
@@ -28,23 +29,25 @@ class VisualGraphScene(QGraphicsScene):
         self._grid_size = config.EditorConfig["editor_scene_grid_size"]
         self._chunk_size = config.EditorConfig["editor_scene_grid_chunk"]
         # 设置背景大小
-        self.setSceneRect(-self._width/2,-self._height/2,self._width,self._height)
+        self.setSceneRect(-self._width/2, -self._height /
+                          2, self._width, self._height)
 
         # 画网格
-        self._normal_line_pen = QPen(QColor(config.EditorConfig["editor_scene_grid_normal_line_color"]))
-        self._normal_line_pen.setWidthF(config.EditorConfig["editor_scene_grid_normal_line_width"])
+        self._normal_line_pen = QPen(
+            QColor(config.EditorConfig["editor_scene_grid_normal_line_color"]))
+        self._normal_line_pen.setWidthF(
+            config.EditorConfig["editor_scene_grid_normal_line_width"])
 
-        self._dark_line_pen = QPen(QColor(config.EditorConfig["editor_scene_grid_dark_line_color"]))
-        self._dark_line_pen.setWidthF(config.EditorConfig["editor_scene_grid_dark_line_width"])
-
+        self._dark_line_pen = QPen(
+            QColor(config.EditorConfig["editor_scene_grid_dark_line_color"]))
+        self._dark_line_pen.setWidthF(
+            config.EditorConfig["editor_scene_grid_dark_line_width"])
 
         self.setItemIndexMethod(QGraphicsScene.NoIndex)
-        
 
-    
-    def set_view(self,view):
+    def set_view(self, view):
         self._view = view
-    
+
     def get_view(self):
         return self._view
 
@@ -61,8 +64,7 @@ class VisualGraphScene(QGraphicsScene):
         painter.setPen(self._dark_line_pen)
         painter.drawLines(drak_lines)
 
-
-    def cal_grid_lines(self,rect):
+    def cal_grid_lines(self, rect):
         left, right, top, bottom = math.floor(rect.left()), math.floor(
             rect.right()), math.floor(rect.top()), math.floor(rect.bottom())
 
@@ -76,16 +78,16 @@ class VisualGraphScene(QGraphicsScene):
 
             line = QLine(left, v, right, v)
 
-            if v % (self._grid_size * self._chunk_size) ==0:
+            if v % (self._grid_size * self._chunk_size) == 0:
                 drak_lines.append(line)
             else:
                 lines.append(line)
 
         # 画竖线
-        for h in range(first_left,right,self._grid_size):
+        for h in range(first_left, right, self._grid_size):
 
-            line = QLine(h,top,h,bottom)
-            
+            line = QLine(h, top, h, bottom)
+
             if h % (self._grid_size * self._chunk_size) == 0:
                 drak_lines.append(line)
             else:

@@ -8,15 +8,18 @@ from widgets.XF_NodeWidget import Node
 中央视图控件
 """
 
+
 class VisualGraphView(QGraphicsView):
     nodeDropped = Signal(QPointF)
     variableDropped = Signal(QPointF, bool)
+
     def __init__(self, scene, parent=None):
         super().__init__(parent)
         self._scene = scene
 
         self.setScene(self._scene)
-        self.setRenderHints(QPainter.Antialiasing | QPainter.TextAntialiasing
+        self.setRenderHints(QPainter.Antialiasing
+                            | QPainter.TextAntialiasing
                             | QPainter.SmoothPixmapTransform
                             | QPainter.LosslessImageRendering)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -31,8 +34,10 @@ class VisualGraphView(QGraphicsView):
 
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
 
-        node1 = Node("ForLoop", QColor(50, 50, 150), inputs=["start", "end"], outputs=["index", "Completed"])
-        node2 = Node("Add", QColor(50, 150, 50), inputs=["A", "B"], outputs=["Result"])
+        node1 = Node("MCU", QColor(50, 50, 150), inputs=[
+                     "IO1", "IO2"], outputs=["IO3", "IO4"])
+        node2 = Node("UART", QColor(50, 150, 50), inputs=[
+                     "TX", "RX"], outputs=["VCC"])
         scene.addItem(node1)
         scene.addItem(node2)
 
@@ -177,4 +182,3 @@ class VisualGraphView(QGraphicsView):
 
     def dropEvent(self, event) -> None:
         super().dropEvent(event)
-        

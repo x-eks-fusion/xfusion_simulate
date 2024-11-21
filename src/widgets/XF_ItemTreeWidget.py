@@ -1,7 +1,7 @@
 from collections import defaultdict
 from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QMenu, QTreeWidget, QTreeWidgetItem
 from functools import partial
-from PySide6.QtCore import Qt,Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QCursor, QAction, QIcon
 import json
 from tools.XF_QssLoader import QSSLoadTool
@@ -10,14 +10,14 @@ from tools.XF_QssLoader import QSSLoadTool
 树控件的基础
 """
 
+
 class ItemTreeWidget(QTreeWidget):
     itemAdded = Signal(QTreeWidgetItem)
-    itemRenamed = Signal(str,QTreeWidgetItem)
+    itemRenamed = Signal(str, QTreeWidgetItem)
     itemDeleted = Signal(QTreeWidgetItem)
     itemRegrouped = Signal(QTreeWidgetItem)
 
     itemSelected = Signal(QTreeWidgetItem)
-
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -58,56 +58,13 @@ class ItemTreeWidget(QTreeWidget):
         self.clear()
         self.defaultGroup = None
         self.item_names = defaultdict(set)
-        '''
-
-            'group name':[
-                'variable name1',
-                'variable name2'
-            ]
-
-            'Default':['width','height'],
-            'Graph':[''],
-            'Visualization':['']
-
-
-            'group name':{
-               'childs':[],
-               'IsDefault':True
-            }
-        
-        '''
-
-        data = {
-            'Group1': [
-                {
-                    'name': 'width',
-                    'type': 'int'
-                },
-                {
-                    'name': 'height',
-                    'type': 'int'
-                }  #变量对象
-            ],
-            'Group2': [
-                {
-                    'name': 'angle',
-                    'type': 'int'
-                },
-                {
-                    'name': 'length',
-                    'type': 'int'
-                }  #变量对象
-            ]
-        }
-
         # 添加一个默认节点是不可以删除的
         if self.defaultGroup is None:
             self.defaultGroup = self.initAGroup('Default')
             self.defaultGroup.setFlags(self.defaultGroup.flags()
-                                    ^ Qt.ItemIsEditable)
+                                       ^ Qt.ItemIsEditable)
             self.defaultGroup.setExpanded(True)
-            self.insertTopLevelItem(0,self.defaultGroup)
-
+            self.insertTopLevelItem(0, self.defaultGroup)
 
     def initAGroup(self, group_name):
 
@@ -126,7 +83,7 @@ class ItemTreeWidget(QTreeWidget):
     def initAItem(self, data):
         self.item_names[self.item_types[2]].add(data['name'])
         subitem = QTreeWidgetItem([data['name']])
-        if data['type']=='func':
+        if data['type'] == 'func':
             subitem.setIcon(0, QIcon('./src/icons/func.png'))
         subitem.setFlags(Qt.ItemIsEditable | Qt.ItemIsSelectable
                          | Qt.ItemIsDragEnabled | subitem.flags())
@@ -160,7 +117,7 @@ class ItemTreeWidget(QTreeWidget):
 
         return item_type
 
-    def setupMenuActions(self, menu: QMenu, item: QTreeWidgetItem,action_labels = ['New Group','New Item','Rename','Delete'] ):
+    def setupMenuActions(self, menu: QMenu, item: QTreeWidgetItem, action_labels=['New Group', 'New Item', 'Rename', 'Delete']):
 
         # 无论在哪里点击都会在树的结尾进行添加
         newGroupAction = QAction(action_labels[0], menu)
@@ -199,7 +156,6 @@ class ItemTreeWidget(QTreeWidget):
         deleteAction = QAction(action_labels[3], menu)
         deleteAction.triggered.connect(partial(self.delteItem, item))
 
-
         menu.addAction(newGroupAction)
         menu.addAction(newItemAction)
         menu.addAction(renameAction)
@@ -236,7 +192,7 @@ class ItemTreeWidget(QTreeWidget):
 
         self.itemAdded.emit(item)
 
-    def generate_name(self, type, default_item_labels = ['Group','Item']):
+    def generate_name(self, type, default_item_labels=['Group', 'Item']):
 
         if type == self.item_types[1]:
             prefix = default_item_labels[0]
@@ -274,7 +230,7 @@ class ItemTreeWidget(QTreeWidget):
 
     # 重命名
     def renameItem(self, item):
-        if item != self.defaultGroup and item != None:
+        if item != self.defaultGroup and item is not None:
             self.editItem(item)
 
     def onItemChanged(self, item: QTreeWidgetItem, column):
@@ -303,14 +259,14 @@ class ItemTreeWidget(QTreeWidget):
 
             # 如果是Group 就是Item需要改变Group
             if item_type == 'Group':
-                for index in range(0,item.childCount()):
+                for index in range(0, item.childCount()):
                     childItem = item.child(index)
-                    data = childItem.data(0,Qt.UserRole)
+                    data = childItem.data(0, Qt.UserRole)
                     data['group'] = item.text(0)
-                    childItem.setData(0,Qt.UserRole,data)
+                    childItem.setData(0, Qt.UserRole, data)
                     self.itemRegrouped.emit(childItem)
             else:
-                self.itemRenamed.emit(pre_name,item)
+                self.itemRenamed.emit(pre_name, item)
 
         self.saveTreeAsDict()
 
@@ -351,7 +307,7 @@ class ItemTreeWidget(QTreeWidget):
             items.append(item)
 
         self.insertTopLevelItems(0, items)
-        if self.defaultGroup.childCount()>0:
+        if self.defaultGroup.childCount() > 0:
             self.defaultGroup.setExpanded(True)
 
     def loadTreeFromJsonFile(self, filePath):

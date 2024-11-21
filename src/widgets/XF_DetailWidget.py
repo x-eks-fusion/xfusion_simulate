@@ -1,6 +1,5 @@
-import logging
-from PySide6.QtWidgets import QTreeWidget, QLabel
-from PySide6.QtCore import Qt,Signal
+from PySide6.QtWidgets import QTreeWidget, QLabel, QTreeWidgetItem
+from PySide6.QtCore import Qt, Signal
 from tools.XF_QssLoader import QSSLoadTool
 from tools.XF_Tools import VGAttrSet
 
@@ -15,11 +14,13 @@ from tools.XF_Tools import VGAttrSet
 }]
 
 '''
+
+
 class DetailWidget(QTreeWidget):
 
     valueChanged = Signal()
 
-    def __init__(self, attrSet:VGAttrSet,parent=None):
+    def __init__(self, attrSet: VGAttrSet, parent=None):
         super().__init__(parent)
 
         self.setColumnCount(2)
@@ -34,8 +35,7 @@ class DetailWidget(QTreeWidget):
 
         self.refresh(self.attrSet)
 
-
-    def refresh(self,attrSet):
+    def refresh(self, attrSet):
 
         if attrSet is None:
             return
@@ -44,15 +44,13 @@ class DetailWidget(QTreeWidget):
         for i in range(attrSet.getAttrCount()):
             attr = attrSet.getAttrAt(i)
             item = QTreeWidgetItem()
-            self.insertTopLevelItem(i,item)
+            self.insertTopLevelItem(i, item)
             # 属性名
             name = attr.getAttrName()
             self.setItemWidget(item, 0, QLabel(name))
-            widget =  attr.bindWidget(self.onValueChanged,self)
-            self.setItemWidget(item, 1,widget)
+            widget = attr.bindWidget(self.onValueChanged, self)
+            self.setItemWidget(item, 1, widget)
 
-    def onValueChanged(self,value,func):
+    def onValueChanged(self, value, func):
         func(value)
         self.valueChanged.emit()
-
-
