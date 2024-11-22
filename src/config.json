@@ -27,7 +27,6 @@
     },
     "PinConfig":{
         "pin_color": {
-            "NC": "#ffffff",
             "Input": "#f5232e",
             "Output": "#88df00",
             "INPUT_OUTPUT": "#fa8b17",

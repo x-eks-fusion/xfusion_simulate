@@ -8,7 +8,6 @@ import sys
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 from widgets.XF_Window import VisualGraphWindow
-from tools.XF_Tools import PrintHelper
 from tools.XF_QssLoader import QSSLoadTool,resource_path
 from base.XF_Config import Config
 import logging

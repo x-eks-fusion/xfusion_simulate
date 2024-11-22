@@ -11,7 +11,6 @@ from PySide6.QtCore import Qt
 import logging
 
 from widgets.XF_NodeListWidget import NodeListWidget
-from tools.XF_Tools import PrintHelper
 
 from widgets.XF_SidebarWidgets import SidebarWidget
 from widgets.XF_DetailWidget import DetailWidget
@@ -21,6 +20,9 @@ from widgets.XF_FuncTreeWidget import FuncTreeWidget
 from widgets.XF_VisualGraphTab import VisualGraphTab
 
 from widgets.XF_MenuBar import MenuBar
+
+from components.XF_MCU import MCU
+from components.XF_LED import LED
 
 
 class VisualGraphWindow(QMainWindow):
@@ -92,15 +94,15 @@ class VisualGraphWindow(QMainWindow):
 
         # 添加一个树
         self.model_tree = NodeListWidget({
-            'package name1': {
-                'node title': 'NodeCls',
-
+            '模块': {
+                'LED': LED,
+                'MCU': MCU
             }
         }, self, dragEnabled=True)
         sw.addComp(QApplication.translate("MainWindow", '模块库'),
                    self.model_tree, False, 10)
 
-        self.detail_widget = DetailWidget(None, self)
+        self.detail_widget = DetailWidget(self)
         sw.addComp(QApplication.translate("MainWindow", '详情'),
                    self.detail_widget, False, 20)
         self.detail_widget.valueChanged.connect(self.refreshVariableTree)
@@ -108,8 +110,8 @@ class VisualGraphWindow(QMainWindow):
         self.right_layout.addWidget(sw)
 
     ######################## 变量树##############################################
-    # 刷新变量树，根据当前tab
 
+    # 刷新变量树，根据当前tab
     def refreshVariableTree(self):
         pass
 
@@ -234,13 +236,17 @@ class VisualGraphWindow(QMainWindow):
         self.tabWidget.setCurrentIndex(self.tabWidget.count()-1)
         self.editor = self.tabWidget.currentWidget()
 
-        # tab_view.view.nodeDropped.connect(self.onNodeDropped)
-        # tab_view.view.variableDropped.connect(self.onVariableDropped)
+        tab_view.view.nodeDropped.connect(self.onNodeDropped)
+        tab_view.view.variableDropped.connect(self.onVariableDropped)
 
     # model中的函数拖入
     def onNodeDropped(self, pos):
         # 拖拽的是哪个item，从item里面获得class name
-        cls = self.model_tree.getDraggedItem().data(0, Qt.UserRole)
+        dragged_item = self.model_tree.getDraggedItem()
+        if dragged_item is None:
+            logging.warning("拖太快了，我都没看清")
+            return
+        cls = dragged_item.data(0, Qt.UserRole)
         if cls is not None:
             self.editor.view.add_graph_node_with_cls_at_view_point(cls, pos)
             self.editor.hide_menu()
@@ -340,7 +346,7 @@ class VisualGraphWindow(QMainWindow):
         pass
 
     def remove_selected(self):
-        pass
+        self.editor.del_items()
 
     def run_graph(self):
         pass
@@ -368,7 +374,7 @@ class VisualGraphWindow(QMainWindow):
                 self, '保存为', os.getcwd(), 'Visual Graph File (*.vgf)')
 
             if filepath == '':
-                PrintHelper.debugPrint('文件选择已取消')
+                logging.debug('文件选择已取消')
                 return
 
             self.tabWidget.setTabText(index, os.path.basename(filepath))
@@ -385,7 +391,7 @@ class VisualGraphWindow(QMainWindow):
             self, '另存为', os.getcwd(), 'Visual Graph File (*.vgf)')
 
         if filepath == '':
-            PrintHelper.debugPrint('文件选择已取消')
+            logging.debug('文件选择已取消')
             return
 
         self.tabWidget.setTabText(
@@ -402,7 +408,7 @@ class VisualGraphWindow(QMainWindow):
             self, '选择文件', os.getcwd(), 'Visual Graph File (*.vgf)')
 
         if filepath == '':
-            PrintHelper.debugPrint('文件选择已取消')
+            logging.debug('文件选择已取消')
             return
 
         self.open_graph(filepath)

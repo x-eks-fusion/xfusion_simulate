@@ -9,6 +9,8 @@ from PySide6.QtCore import Qt, QLine
 import math
 import PySide6
 from base.XF_Config import Config
+import logging
+import PySide6
 
 """
 中央场景控件
@@ -44,12 +46,6 @@ class VisualGraphScene(QGraphicsScene):
             config.EditorConfig["editor_scene_grid_dark_line_width"])
 
         self.setItemIndexMethod(QGraphicsScene.NoIndex)
-
-    def set_view(self, view):
-        self._view = view
-
-    def get_view(self):
-        return self._view
 
     def drawBackground(self, painter: PySide6.QtGui.QPainter, rect) -> None:
 

@@ -7,7 +7,6 @@ from PySide6.QtGui import QPixmap, QAction, QIcon, QCursor, QIntValidator, QDoub
 from PySide6.QtCore import Qt, QFile, QFileInfo, Signal
 from os.path import abspath
 from tools.XF_QssLoader import QSSLoadTool
-from tools.XF_Tools import VGAttrSet
 
 """
 左右侧边栏

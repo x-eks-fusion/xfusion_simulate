@@ -1,8 +1,12 @@
 from PySide6.QtWidgets import QGraphicsView, QApplication, QTreeWidgetItem
 from PySide6.QtCore import QPointF, Signal, QEvent
-from PySide6.QtGui import QPainter, Qt, QMouseEvent, QColor
+from PySide6.QtGui import QPainter, Qt, QMouseEvent, QKeyEvent
 import PySide6
-from widgets.XF_NodeWidget import Node
+
+from widgets.XF_NodeListWidget import NodeListWidget
+from widgets.XF_VariableTreeWidget import VariableTreeWidget
+
+import logging
 
 """
 中央视图控件
@@ -15,16 +19,14 @@ class VisualGraphView(QGraphicsView):
 
     def __init__(self, scene, parent=None):
         super().__init__(parent)
-        self._scene = scene
 
-        self.setScene(self._scene)
+        self.setScene(scene)
         self.setRenderHints(QPainter.Antialiasing
                             | QPainter.TextAntialiasing
                             | QPainter.SmoothPixmapTransform
                             | QPainter.LosslessImageRendering)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
         # scale
         self._zoom_clamp = [0.2, 2]
         self._zoom_factor = 1.05
@@ -34,26 +36,11 @@ class VisualGraphView(QGraphicsView):
 
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
 
-        node1 = Node("MCU", QColor(50, 50, 150), inputs=[
-                     "IO1", "IO2"], outputs=["IO3", "IO4"])
-        node2 = Node("UART", QColor(50, 150, 50), inputs=[
-                     "TX", "RX"], outputs=["VCC"])
-        scene.addItem(node1)
-        scene.addItem(node2)
-
-        node1.setPos(-100, -50)
-        node2.setPos(150, -50)
-
     def mousePressEvent(self, event: PySide6.QtGui.QMouseEvent) -> None:
 
         if event.button() == Qt.MiddleButton:
+            logging.debug("移动画布")
             self.middleButtonPressed(event)
-        elif event.button() == Qt.LeftButton:
-            self.leftButtonPressed(event)
-
-        elif event.button() == Qt.RightButton:
-
-            self.rightButtonPressed(event)
         else:
             super().mousePressEvent(event)
 
@@ -61,13 +48,6 @@ class VisualGraphView(QGraphicsView):
 
         if event.button() == Qt.MiddleButton:
             self.middleButtonRealeased(event)
-
-        elif event.button() == Qt.LeftButton:
-            self.leftButtonReleased(event)
-
-        elif event.button() == Qt.RightButton:
-
-            self.rightButtonReleased(event)
 
         super().mouseReleaseEvent(event)
 
@@ -97,16 +77,8 @@ class VisualGraphView(QGraphicsView):
         # 每一次相对于上一次的进行缩放
         self.scale(zoom_factor, zoom_factor)
 
-    # 鼠标移动事件
-    def mouseMoveEvent(self, event: PySide6.QtGui.QMouseEvent) -> None:
-        super().mouseMoveEvent(event)
-
-    # 键盘点击
-    def keyPressEvent(self, event: PySide6.QtGui.QKeyEvent) -> None:
-
-        return super().keyPressEvent(event)
-
     # 鼠标中间点击
+
     def middleButtonPressed(self, event):
 
         if self.itemAt(event.pos()) is not None:
@@ -135,50 +107,47 @@ class VisualGraphView(QGraphicsView):
         self.setDragMode(QGraphicsView.RubberBandDrag)
         self._drag_mode = False
 
-    def leftButtonPressed(self, event: QMouseEvent):
-        # 菜单隐藏
-        self._menu_widget.hide()
-
-        mouse_pos = event.pos()
-        item = self.itemAt(mouse_pos)
-
-        super().mousePressEvent(event)
-
-    def leftButtonReleased(self, event: QMouseEvent):
-        super().mouseReleaseEvent(event)
-
-    def rightButtonPressed(self, event):
-
-        item = self.itemAt(event.pos())
-
-        self.setDragMode(QGraphicsView.NoDrag)
-
-        super().mousePressEvent(event)
-
-    def rightButtonReleased(self, event):
-        QApplication.setOverrideCursor(Qt.ArrowCursor)
-        self.setDragMode(QGraphicsView.RubberBandDrag)
-
-    def setMenuWidget(self, menuW):
-        self._menu_widget = menuW
-
-    def node_selected(self, item, column):
-        if isinstance(item, QTreeWidgetItem):
-            cls = item.data(0, Qt.UserRole)
-            if cls is not None:
-
-                geometry = self._menu_widget.geometry()
-                pos = QPointF(geometry.x(), geometry.y())
-                view_pos = self.mapFromParent(pos)
-                scene_pos = self.mapToScene(int(view_pos.x()),
-                                            int(view_pos.y()))
-                self.add_graph_node_with_cls(
-                    cls, [scene_pos.x(), scene_pos.y()])
-                self._menu_widget.hide()
-
     # 接受drop
     def dragMoveEvent(self, event) -> None:
-        super().dragMoveEvent(event)
+        if isinstance(event.source(), NodeListWidget):
+            event.acceptProposedAction()
+        elif isinstance(event.source(), VariableTreeWidget):
+            event.acceptProposedAction()
+        else:
+            return super().dragMoveEvent(event)
 
     def dropEvent(self, event) -> None:
-        super().dropEvent(event)
+        if isinstance(event.source(), NodeListWidget):
+            self.nodeDropped.emit(event.pos())
+
+        if isinstance(event.source(), VariableTreeWidget):
+            self.variableDropped.emit(event.pos(),
+                                      event.modifiers() == Qt.AltModifier)
+
+        return super().dropEvent(event)
+
+    def add_graph_node(self, node, pos=[0, 0]):
+        self.scene().addItem(node)
+        if pos is not None:
+            node.setPos(pos[0], pos[1])
+
+    def add_graph_node_with_cls(self, cls, pos, centered=False):
+
+        components = cls(pos[0], pos[1])
+        if centered:
+            pos[0] = pos[0] - components.get_width() / 2
+
+        self.add_graph_node(components, pos)
+        return components
+
+    def add_graph_node_with_cls_at_view_point(self,
+                                              cls,
+                                              pos: QPointF,
+                                              centered=True):
+        scene_pos = self.mapToScene(int(pos.x()), int(pos.y()))
+        try:
+            self.add_graph_node_with_cls(
+                cls, [scene_pos.x(), scene_pos.y()], centered=centered)
+        except ValueError as e:
+            logging.error(e)
+
