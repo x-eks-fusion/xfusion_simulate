@@ -40,7 +40,6 @@ class VisualGraphWindow(QMainWindow):
         # 初始化菜单栏
         self.menu_bar = MenuBar(self)
         self.action_triggered()
-
         # 编辑器设置，位置在中间，占比例至少80%
         self.setup_editor()
 
@@ -197,11 +196,11 @@ class VisualGraphWindow(QMainWindow):
         self.splitter.addWidget(self.left_sidebar)
         self.splitter.addWidget(self.center_splitter)
         self.splitter.addWidget(self.right_sidebar)
-        self.splitter.setSizes([250, 1500, 250])
+        self.splitter.setSizes([0, 1500, 250])
+        self.splitter.setHandleWidth(3)
         self.setCentralWidget(self.splitter)
 
     def setup_centeral_splitter(self):
-        # self.setup_logger_console()
 
         self.center_splitter = QSplitter(Qt.Vertical, self)
         self.center_splitter.addWidget(self.tabWidget)
@@ -211,7 +210,6 @@ class VisualGraphWindow(QMainWindow):
         # 当前不的都关闭之后index返回-1
         if index >= 0:
             self.editor = self.tabWidget.currentWidget()
-
         self.refreshVariableTree()
 
     def tab_close(self, index):
@@ -238,6 +236,10 @@ class VisualGraphWindow(QMainWindow):
 
         tab_view.view.nodeDropped.connect(self.onNodeDropped)
         tab_view.view.variableDropped.connect(self.onVariableDropped)
+        tab_view.view.attributeShowed.connect(self.onAttrShowed)
+
+    def onAttrShowed(self, attrs):
+        self.detail_widget.refresh(attrs)
 
     # model中的函数拖入
     def onNodeDropped(self, pos):
@@ -249,18 +251,10 @@ class VisualGraphWindow(QMainWindow):
         cls = dragged_item.data(0, Qt.UserRole)
         if cls is not None:
             self.editor.view.add_graph_node_with_cls_at_view_point(cls, pos)
-            self.editor.hide_menu()
 
     # 变量拖入
     def onVariableDropped(self, pos, hasControlPressed):
-        data = self.vari_tree.getDraggedItem().data(0, Qt.UserRole)
-        # if hasControlPressed:
-        #     cls = Getter_Setter_Helper.variable_setter_node(
-        #         data['name'], data['type'])
-        # else:
-        #     cls = Getter_Setter_Helper.variable_getter_node(data['name'], data['type'])
-        # self.editor.view.add_graph_node_with_cls_at_view_point(cls, pos)
-        self.editor.hide_menu()
+        pass
 
     def center(self):
         screen = QGuiApplication.primaryScreen().geometry()

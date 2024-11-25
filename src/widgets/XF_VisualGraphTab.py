@@ -23,7 +23,6 @@ class VisualGraphTab(QWidget):
 
         super().__init__(parent)
         self.setup_editor()
-        self.setup_menu()
         self.undo_stack = QUndoStack(self)
         self.id = np.random.randint(1, 10000)
 
@@ -37,37 +36,6 @@ class VisualGraphTab(QWidget):
         self.scene = VisualGraphScene(self)
         self.view = VisualGraphView(self.scene)
         self.layout.addWidget(self.view)
-        logging.debug(f"scene:{self.view.scene()}")
-        logging.debug(f"views:{self.scene.views()}")
-
-    #  右键点击，添加右键菜单 TODO 将该功能改到window的context menu功能内
-    def mousePressEvent(self, event: QMouseEvent) -> None:
-
-        if event.button() == Qt.RightButton and event.modifiers() != Qt.ControlModifier:
-            self.show_menu(event.pos())
-
-        super().mousePressEvent(event)
-
-    # ########## 设置菜单栏
-
-    def setup_menu(self):
-        self.refresh_menu_data()
-        self._menu_widget = NodeListWidget(self._menu_data, self)
-        self._menu_widget.setGeometry(0, 0, 200, 300)
-        self.hide_menu()
-
-    def hide_menu(self):
-        self._menu_widget.setVisible(False)
-
-    def show_menu(self, pos):
-        self.refresh_menu_data()
-        self._menu_widget.refresh_tree(self._menu_data)
-        self._menu_widget.setGeometry(pos.x(), pos.y(), 200, 300)
-        self._menu_widget.show()
-
-    def refresh_menu_data(self):
-        self._menu_data = {
-        }
 
     def get_selected_items(self):
         return self.scene.selectedItems()

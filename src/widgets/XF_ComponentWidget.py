@@ -1,14 +1,16 @@
-from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsColorizeEffect, QStyleOptionGraphicsItem, QWidget
+from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem, QGraphicsColorizeEffect, QStyleOptionGraphicsItem, QWidget
 from PySide6.QtGui import QPainter, QPen, QBrush, QColor
 from PySide6.QtSvgWidgets import QGraphicsSvgItem
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 import PySide6
 import logging
 
 from widgets.XF_PinWidget import Pin
+import uuid
 
 
 class Component(QGraphicsRectItem):
+
     def __init__(self, x, y, name, scale=1, svg_path=None, parent=None):
         super().__init__(x, y, 1, 1, parent)
         self.name = name
@@ -16,6 +18,9 @@ class Component(QGraphicsRectItem):
         self.setBrush(QBrush(Qt.transparent))  # 背景颜色
         self.setPen(QPen(Qt.transparent))  # 边框颜色
         self.scale = scale
+        self._id = uuid.uuid4()
+        self._attribute = {"UUID": self._id.hex, "name": name}
+        self.scene_pos = self.scenePos()  # 获取当前位置
 
         # SVG 图像
         self.svg_item = None
@@ -27,6 +32,12 @@ class Component(QGraphicsRectItem):
         )
         if svg_path:
             self.load_svg(svg_path)
+
+    def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value):
+        for pin in self.pins:
+            pin.onMoved()
+        self.scene_pos = self.scenePos()
+        return super().itemChange(change, value)
 
     def load_svg(self, svg_path):
         """加载 SVG 图片"""
@@ -58,8 +69,8 @@ class Component(QGraphicsRectItem):
         """根据类型获取 Pins"""
         return [pin for pin in self.pins if pin.pin_type == pin_type]
 
-    def remove_self(self):
-        self.prepareGeometryChange()
-        # TODO 递归删除连接者
-        self.scene().removeItem(self)
-        self.update()
+    @property
+    def attribute(self) -> dict:
+        self._attribute["sence_pos_x"] = self.scene_pos.x()
+        self._attribute["sence_pos_y"] = self.scene_pos.y()
+        return self._attribute

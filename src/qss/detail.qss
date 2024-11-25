@@ -43,3 +43,15 @@ QTreeView::item:selected:!active {
     color: #c4c4c4;
     border:none;
 }
+
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+        border-image: none;
+        image: url('./src/icons/tree-close-white.png') no-repeat center center fixed;
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings  {
+        border-image: none;
+        image: url('./src/icons/tree-open-white.png') no-repeat center center fixed;
+}

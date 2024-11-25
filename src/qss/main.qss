@@ -142,3 +142,12 @@ QToolBox::tab {
 QToolBox::tab:selected { 
     font: italic;
 }
+
+QSplitter::handle {
+    background-color: #2a2a2a; /* 与背景颜色一致 */
+}
+
+
+QSplitter::handle:hover {
+    background-color: #444444; /* 鼠标悬停时颜色改变 */
+}

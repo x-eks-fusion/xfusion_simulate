@@ -16,9 +16,10 @@ import logging
 class VisualGraphView(QGraphicsView):
     nodeDropped = Signal(QPointF)
     variableDropped = Signal(QPointF, bool)
+    attributeShowed = Signal(list)
 
     def __init__(self, scene, parent=None):
-        super().__init__(parent)
+        super().__init__(scene)
 
         self.setScene(scene)
         self.setRenderHints(QPainter.Antialiasing
@@ -35,6 +36,19 @@ class VisualGraphView(QGraphicsView):
         self.setDragMode(QGraphicsView.RubberBandDrag)
 
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
+        self.scene().selectionChanged.connect(self.on_selection_changed)
+
+    def on_selection_changed(self):
+        try:
+            selected_items = self.scene().selectedItems()
+        except RuntimeError:
+            return
+        attrs = []
+        if selected_items is []:
+            return
+        for item in selected_items:
+            attrs.append(item.attribute)
+        self.attributeShowed.emit(attrs)
 
     def mousePressEvent(self, event: PySide6.QtGui.QMouseEvent) -> None:
 
@@ -150,4 +164,3 @@ class VisualGraphView(QGraphicsView):
                 cls, [scene_pos.x(), scene_pos.y()], centered=centered)
         except ValueError as e:
             logging.error(e)
-

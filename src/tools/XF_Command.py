@@ -21,5 +21,7 @@ class CutCommand(QUndoCommand):
     def redo(self):
         for item in self.items:
             logging.info(f"item:{type(item)}")
-            # TODO 获取相连的
-            item.remove_self()
+            try:
+                item.scene().removeItem(item)
+            except AttributeError:
+                pass

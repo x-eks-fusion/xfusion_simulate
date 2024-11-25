@@ -4,7 +4,7 @@ from PySide6.QtGui import QBrush, QColor, QPen
 from PySide6.QtCore import Qt
 from svgpathtools import svg2paths
 from PySide6.QtGui import QPainterPath
-from widgets.XF_PinWidget import InputPin, OutputPin
+from widgets.XF_PinWidget import InputPin, OutputPin, Pin
 
 
 class LED(Component):
@@ -25,8 +25,8 @@ class LED(Component):
         self.color = color
         super().__init__(x, y, "LED", 2, self.color_path["off"], parent=parent)
         # 添加引脚
-        self.add_pin(InputPin(45, 80, 10))       # VCC 引脚
-        self.add_pin(OutputPin(25, 80, 10))       # VCC 引脚
+        self.add_pin(InputPin("-", 45, 80, 10, Pin.RIGHT, self))
+        self.add_pin(OutputPin("+", 25, 80, 10, Pin.LEFT, self))
         self.is_on = False
 
     def on(self):
@@ -48,3 +48,9 @@ class LED(Component):
         if color not in self.color_path.keys():
             raise ValueError("no led color support")
         self.load_svg(self.color_path[color])
+
+    @property
+    def attribute(self) -> dict:
+        self._attribute["status"] = self.is_on
+        self._attribute["color"] = self.color
+        return self._attribute
