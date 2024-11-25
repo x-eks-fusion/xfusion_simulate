@@ -1,0 +1,7 @@
+numpy==2.1.3
+PySide6==6.8.0.2
+PySide6==6.8.0.2
+PySide6_Addons==6.8.0.2
+PySide6_Essentials==6.8.0.2
+rich==13.9.4
+svgpathtools==1.6.1

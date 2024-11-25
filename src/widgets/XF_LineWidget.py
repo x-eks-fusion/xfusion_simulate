@@ -49,8 +49,6 @@ class LineWidget(QGraphicsPathItem):
         self.setFlags(QGraphicsItem.ItemIsSelectable)
         logging.info("曲线创建成功")
 
-    def 
-
     def set_des_point(self, des_pos):
         self._des_pos = des_pos
 
