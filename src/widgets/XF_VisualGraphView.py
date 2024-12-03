@@ -149,7 +149,7 @@ class VisualGraphView(QGraphicsView):
 
         components = cls(pos[0], pos[1])
         if centered:
-            pos[0] = pos[0] - components.get_width() / 2
+            pos[0] = pos[0] - components.getWidth() / 2
 
         self.add_graph_node(components, pos)
         return components

@@ -5,12 +5,10 @@ QGraphicsScene的子类
 '''
 from PySide6.QtWidgets import QGraphicsScene
 from PySide6.QtGui import QBrush, QColor, QPen
-from PySide6.QtCore import Qt, QLine
+from PySide6.QtCore import QLine
 import math
 import PySide6
 from base.XF_Config import Config
-import logging
-import PySide6
 
 """
 中央场景控件

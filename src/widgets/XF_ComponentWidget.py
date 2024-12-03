@@ -1,9 +1,7 @@
-from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem, QGraphicsColorizeEffect, QStyleOptionGraphicsItem, QWidget
-from PySide6.QtGui import QPainter, QPen, QBrush, QColor
+from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
+from PySide6.QtGui import QPen, QBrush, QTransform
 from PySide6.QtSvgWidgets import QGraphicsSvgItem
-from PySide6.QtCore import Qt, Signal
-import PySide6
-import logging
+from PySide6.QtCore import Qt
 
 from widgets.XF_PinWidget import Pin
 import uuid
@@ -31,7 +29,7 @@ class Component(QGraphicsRectItem):
 
         )
         if svg_path:
-            self.load_svg(svg_path)
+            self.loadSvg(svg_path)
 
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value):
         for pin in self.pins:
@@ -39,7 +37,43 @@ class Component(QGraphicsRectItem):
         self.scene_pos = self.scenePos()
         return super().itemChange(change, value)
 
-    def load_svg(self, svg_path):
+    def setVerticalMirror(self):
+        transform = QTransform()
+        transform.scale(-1, 1)  # 水平镜像
+        self.setTransform(transform)
+        for pin in self.pins:
+            pin.setVerticalMirror()
+
+    def setHorizontalMirror(self):
+        transform = QTransform()
+        transform.scale(1, -1)  # 垂直镜像
+        self.setTransform(transform)
+        for pin in self.pins:
+            pin.setHorizontalMirror()
+
+    def setAllMirror(self):
+        transform = QTransform()
+        transform.scale(-1, -1)  # 水平垂直镜像
+        self.setTransform(transform)
+        for pin in self.pins:
+            pin.setAllMirror()
+
+    def setNoMirror(self):
+        transform = QTransform()
+        transform.scale(1, 1)  # 水平垂直镜像
+        self.setTransform(transform)
+        for pin in self.pins:
+            pin.setNoMirror()
+
+    def setRotation(self, angle):
+        if angle % 90 != 0:
+            return
+        angle = angle % 360
+        for i in self.pins:
+            i.setRota(angle)
+        super().setRotation(angle)
+
+    def loadSvg(self, svg_path):
         """加载 SVG 图片"""
         self.svg_item = QGraphicsSvgItem(svg_path)
         self.svg_item.setParentItem(self)  # 将 SVG 图像设置为 Component 的子项
@@ -51,13 +85,13 @@ class Component(QGraphicsRectItem):
         # 设置 QGraphicsSvgItem 的位置与 QGraphicsRectItem 对齐
         self.svg_item.setPos(self.x(), self.y())
 
-    def get_width(self):
+    def getWidth(self):
         return self.width
 
-    def get_height(self):
+    def getHeight(self):
         return self.height
 
-    def add_pin(self, pin):
+    def addPin(self, pin):
         """添加 Pin 到组件"""
         if isinstance(pin, Pin):
             self.pins.append(pin)
@@ -65,7 +99,11 @@ class Component(QGraphicsRectItem):
         else:
             raise ValueError("只能添加 Pin 对象")
 
-    def get_pins_by_type(self, pin_type):
+    def removeAllLines(self):
+        for pin in self.pins:
+            pin.removeAllLines()
+
+    def getPinsByType(self, pin_type):
         """根据类型获取 Pins"""
         return [pin for pin in self.pins if pin.pin_type == pin_type]
 

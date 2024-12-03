@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QTreeWidget, QTreeWidgetItem
+from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem, QTreeWidget
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor
 from tools.XF_QssLoader import QSSLoadTool

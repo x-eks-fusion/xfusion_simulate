@@ -1,10 +1,5 @@
 # coding:utf-8
-'''
-把这个替换掉
-'''
-
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QFontMetrics
 from PySide6.QtCore import QFileInfo, QFile
 import re
 import os

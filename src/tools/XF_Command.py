@@ -11,9 +11,6 @@ class CutCommand(QUndoCommand):
         self.editor = editor
         self.items = self.editor.get_selected_items()
 
-        logging.debug(
-            f'Cut command --- {len(self.items)} items selected {self.editor.id}')
-
     def undo(self) -> None:
         for item in self.items:
             self.editor.add_node(item)

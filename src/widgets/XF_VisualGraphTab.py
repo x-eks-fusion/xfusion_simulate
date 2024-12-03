@@ -1,11 +1,7 @@
 from PySide6.QtWidgets import QWidget, QBoxLayout
-from PySide6.QtGui import QMouseEvent, QCursor, QUndoStack, QUndoCommand
-from PySide6.QtCore import Qt, QPointF
-import logging
-import PySide6
+from PySide6.QtGui import QUndoStack, QUndoCommand
 
 from widgets.XF_VisualGraphScene import VisualGraphScene
-from widgets.XF_NodeListWidget import NodeListWidget
 from widgets.XF_VisualGraphView import VisualGraphView
 from tools.XF_Command import CutCommand
 

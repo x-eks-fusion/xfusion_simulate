@@ -2,9 +2,11 @@
 
 from functools import partial
 import logging
-from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QApplication, QScrollArea, QMenu, QTreeWidget, QTreeWidgetItem, QSpacerItem, QSizePolicy, QAbstractItemView, QComboBox, QGridLayout, QLineEdit
-from PySide6.QtGui import QPixmap, QAction, QIcon, QCursor, QIntValidator, QDoubleValidator
-from PySide6.QtCore import Qt, QFile, QFileInfo, Signal
+from PySide6.QtWidgets import QWidget, QPushButton, QLabel, QVBoxLayout
+from PySide6.QtWidgets import QHBoxLayout, QSizePolicy
+from PySide6.QtWidgets import QScrollArea, QMenu, QSpacerItem
+from PySide6.QtGui import QPixmap, QAction
+from PySide6.QtCore import Qt, Signal
 from os.path import abspath
 from tools.XF_QssLoader import QSSLoadTool
 

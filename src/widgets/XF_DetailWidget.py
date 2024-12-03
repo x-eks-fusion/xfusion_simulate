@@ -1,10 +1,6 @@
-from PySide6.QtWidgets import QTreeWidget, QTableWidgetItem, QTreeWidgetItem, QVBoxLayout
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
+from PySide6.QtCore import Signal
 from tools.XF_QssLoader import QSSLoadTool
-from PySide6.QtWidgets import QToolTip
-from widgets.XF_ItemTreeWidget import ItemTreeWidget
-
-import logging
 
 """
 右下角详情信息控件

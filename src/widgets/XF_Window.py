@@ -5,7 +5,9 @@
 '''
 
 import os
-from PySide6.QtWidgets import QWidget, QMainWindow, QVBoxLayout, QFileDialog, QTabWidget, QApplication, QSplitter, QTreeWidgetItem
+from PySide6.QtWidgets import QWidget, QMainWindow, QVBoxLayout, QFileDialog
+from PySide6.QtWidgets import QTabWidget, QApplication, QSplitter
+from PySide6.QtWidgets import QTreeWidgetItem
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtCore import Qt
 import logging
@@ -23,6 +25,9 @@ from widgets.XF_MenuBar import MenuBar
 
 from components.XF_MCU import MCU
 from components.XF_LED import LED
+from components.XF_Button import Button
+
+from widgets.XF_ComponentWidget import Component
 
 
 class VisualGraphWindow(QMainWindow):
@@ -95,7 +100,8 @@ class VisualGraphWindow(QMainWindow):
         self.model_tree = NodeListWidget({
             '模块': {
                 'LED': LED,
-                'MCU': MCU
+                'MCU': MCU,
+                'Button': Button
             }
         }, self, dragEnabled=True)
         sw.addComp(QApplication.translate("MainWindow", '模块库'),
@@ -340,6 +346,11 @@ class VisualGraphWindow(QMainWindow):
         pass
 
     def remove_selected(self):
+        items = self.editor.get_selected_items()
+        for item in items:
+            if not isinstance(item, Component):
+                continue
+            item.removeAllLines()
         self.editor.del_items()
 
     def run_graph(self):
