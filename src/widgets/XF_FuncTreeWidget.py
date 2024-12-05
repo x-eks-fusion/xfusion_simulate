@@ -17,5 +17,5 @@ class FuncTreeWidget(ItemTreeWidget):
             action_labels=['New Group', 'New Function', 'Rename', 'Delete']):
         return super().setupMenuActions(menu, item, action_labels)
 
-    def generate_name(self, type, default_item_labels=['Group', 'Function']):
-        return super().generate_name(type, default_item_labels)
+    def generateName(self, type, default_item_labels=['Group', 'Function']):
+        return super().generateName(type, default_item_labels)

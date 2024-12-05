@@ -9,11 +9,11 @@ class CutCommand(QUndoCommand):
         super().__init__(text)
 
         self.editor = editor
-        self.items = self.editor.get_selected_items()
+        self.items = self.editor.getSelectedItems()
 
     def undo(self) -> None:
         for item in self.items:
-            self.editor.add_node(item)
+            self.editor.addNode(item)
 
     def redo(self):
         for item in self.items:

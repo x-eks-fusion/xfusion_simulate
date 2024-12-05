@@ -103,7 +103,7 @@ class ItemTreeWidget(QTreeWidget):
         self.setupMenuActions(menu, item)
         menu.exec(self.mapToGlobal(qPoint))
 
-    def check_item_type(self, item):
+    def checkItemType(self, item):
 
         if item is None:
             item_type = self.item_types[0]
@@ -124,7 +124,7 @@ class ItemTreeWidget(QTreeWidget):
         newGroupAction.triggered.connect(self.newGroup)
 
         # 如果点击的是Group则加入该Group的Item
-        menu_type = self.check_item_type(item)
+        menu_type = self.checkItemType(item)
         if menu_type == 'Group':
             group = item
             index = group.childCount()
@@ -145,7 +145,7 @@ class ItemTreeWidget(QTreeWidget):
                     group,
                     index,
                     data={
-                        'name': f'{self.generate_name(self.item_types[2])}',
+                        'name': f'{self.generateName(self.item_types[2])}',
                         'type': 1,
                         'group': group.text(0)
                     }))
@@ -165,13 +165,13 @@ class ItemTreeWidget(QTreeWidget):
         self.selected_item = item
         self.selected_item_data = item.data(0, Qt.UserRole)
 
-        if self.check_item_type(item) == 'Item':
+        if self.checkItemType(item) == 'Item':
             self.itemSelected.emit(item)
 
     # 创建group
     def newGroup(self):
         # 初始化一个groupitem
-        groupItem = self.initAGroup(self.generate_name(self.item_types[1]))
+        groupItem = self.initAGroup(self.generateName(self.item_types[1]))
         # 添加至tree
         self.addTopLevelItem(groupItem)
         # 设置为可编辑
@@ -192,7 +192,7 @@ class ItemTreeWidget(QTreeWidget):
 
         self.itemAdded.emit(item)
 
-    def generate_name(self, type, default_item_labels=['Group', 'Item']):
+    def generateName(self, type, default_item_labels=['Group', 'Item']):
 
         if type == self.item_types[1]:
             prefix = default_item_labels[0]
@@ -216,7 +216,7 @@ class ItemTreeWidget(QTreeWidget):
             print('Default group cannot be deleted.')
             return
 
-        item_type = self.check_item_type(item)
+        item_type = self.checkItemType(item)
         if item_type == 'Item':
             item.parent().removeChild(item)
         elif item_type == 'Group':
@@ -239,7 +239,7 @@ class ItemTreeWidget(QTreeWidget):
         current_name = item.text(column)
         pre_name = item.data(column, Qt.UserRole)['name']
 
-        item_type = self.check_item_type(item)
+        item_type = self.checkItemType(item)
 
         if current_name == pre_name:
             return

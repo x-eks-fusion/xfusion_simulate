@@ -2,6 +2,7 @@
 
 import logging
 
+
 class ColoredFormatter(logging.Formatter):
     COLORS = {
         'NOTSET': '\033[97m',

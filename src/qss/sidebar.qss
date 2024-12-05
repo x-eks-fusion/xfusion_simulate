@@ -63,17 +63,17 @@ ToolBoxWidget QScrollBar::sub-line:vertical {
 }
 
 
-ToolBoxComponentWidget {
+ToolBoxDeviceWidget {
     background-color:#313131;
 }
 
-ToolBoxComponentWidget QPushButton#ToolCompTitle {
+ToolBoxDeviceWidget QPushButton#ToolCompTitle {
     border-radius : 0px;
     background-color: #272727;
     height:30px;
 }
 
-ToolBoxComponentWidget QPushButton#ToolCompTitle QLabel {
+ToolBoxDeviceWidget QPushButton#ToolCompTitle QLabel {
 
     color:#c1c1c1;
     font-size:14px;
@@ -81,7 +81,7 @@ ToolBoxComponentWidget QPushButton#ToolCompTitle QLabel {
 
 }
 
-ToolBoxComponentWidget #toolContent {
+ToolBoxDeviceWidget #toolContent {
     color:#c1c1c1;
     font-size:14px;
     padding:5px;

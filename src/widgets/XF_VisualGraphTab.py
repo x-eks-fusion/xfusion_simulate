@@ -18,12 +18,12 @@ class VisualGraphTab(QWidget):
     def __init__(self, parent=None):
 
         super().__init__(parent)
-        self.setup_editor()
+        self.setupEditor()
         self.undo_stack = QUndoStack(self)
         self.id = np.random.randint(1, 10000)
 
     # 设置窗口，只需要初始化view
-    def setup_editor(self):
+    def setupEditor(self):
         # 窗口位置以及大小
         self.layout = QBoxLayout(QBoxLayout.LeftToRight, self)
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -33,17 +33,17 @@ class VisualGraphTab(QWidget):
         self.view = VisualGraphView(self.scene)
         self.layout.addWidget(self.view)
 
-    def get_selected_items(self):
+    def getSelectedItems(self):
         return self.scene.selectedItems()
 
-    def del_items(self):
+    def delItems(self):
         command = CutCommand(self, 'del items')
-        self.add_action_to_stack('del items', command)
+        self.addActionToStack('del items', command)
 
-    def add_action_to_stack(self, command_text, command: QUndoCommand):
+    def addActionToStack(self, command_text, command: QUndoCommand):
         self.undo_stack.beginMacro(command_text)
         self.undo_stack.push(command)
         self.undo_stack.endMacro()
 
-    def add_node(self, node):
-        self.view.add_graph_node(node, pos=None)
+    def addNode(self, node):
+        self.view.addGraphNode(node, pos=None)

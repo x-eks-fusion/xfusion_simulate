@@ -18,7 +18,7 @@ class NodeListWidget(QTreeWidget):
         self.setColumnCount(1)
         self.setHeaderHidden(True)
 
-        self.construct_tree()
+        self.constructTree()
         QSSLoadTool.setStyleSheetFile(self, './src/qss/tree.qss')
 
         self.setObjectName('MenuTree')
@@ -42,11 +42,11 @@ class NodeListWidget(QTreeWidget):
     def getDraggedItem(self):
         return self.dragged_item
 
-    def refresh_tree(self, data):
+    def refreshTree(self, data):
         self.data = data
-        self.construct_tree()
+        self.constructTree()
 
-    def construct_tree(self, filter=None):
+    def constructTree(self, filter=None):
         self.clear()
 
         items = []

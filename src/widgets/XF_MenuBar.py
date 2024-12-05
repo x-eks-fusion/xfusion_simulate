@@ -10,7 +10,7 @@ class MenuBar():
     def __init__(self, parent: QWidget | None = ...) -> None:
         self.parent = parent
         self.menu = self.parent.menuBar()
-        self.create_actions()
+        self.createActions()
 
         fileMenu = self.menu.addMenu('&文件')
         fileMenu.addAction(self.newGraphAction)
@@ -28,7 +28,7 @@ class MenuBar():
 
         self.recent_menu = fileMenu.addMenu(
             QApplication.translate("MainWindow", '打开最近图像'))
-        self.recent_menu.aboutToShow.connect(self.show_recent_files)
+        self.recent_menu.aboutToShow.connect(self.showRecentFiles)
 
         editMenu = self.menu.addMenu('&编辑')
         editMenu.addAction(self.undoAction)
@@ -76,7 +76,7 @@ class MenuBar():
         # 最近文件列表,只记录文件绝对路径
         self.recent_files = []
 
-    def create_actions(self):
+    def createActions(self):
         self.newGraphAction = QAction(
             QApplication.translate("MainWindow", '新图像'), self.parent)
         self.newGraphAction.setShortcut(QKeySequence.New)
@@ -217,7 +217,7 @@ class MenuBar():
             QApplication.translate("MainWindow", '后台运行'), self.parent)
         self.runInBackAction.setShortcut(QKeySequence('Ctrl+B'))
 
-    def show_recent_files(self):
+    def showRecentFiles(self):
 
         self.recent_menu.clear()
 

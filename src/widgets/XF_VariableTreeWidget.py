@@ -13,5 +13,5 @@ class VariableTreeWidget(ItemTreeWidget):
     def setupMenuActions(self, menu: QMenu, item: QTreeWidgetItem, action_labels=['New Group', 'New Variable', 'Rename', 'Delete']):
         return super().setupMenuActions(menu, item, action_labels)
 
-    def generate_name(self, type, default_item_labels=['Group', 'Variable']):
-        return super().generate_name(type, default_item_labels)
+    def generateName(self, type, default_item_labels=['Group', 'Variable']):
+        return super().generateName(type, default_item_labels)

@@ -3,7 +3,6 @@ from PySide6.QtWidgets import QGraphicsItem, QGraphicsPathItem
 from PySide6.QtWidgets import QGraphicsDropShadowEffect
 from PySide6.QtCore import Qt, QPointF
 import logging
-import uuid
 
 
 class LineWidget(QGraphicsPathItem):
@@ -37,15 +36,12 @@ class LineWidget(QGraphicsPathItem):
 
         self.setZValue(-1)
 
-        self._id = uuid.uuid4()
-
         # 选中投影
         self._shadow = QGraphicsDropShadowEffect()
         self._shadow.setOffset(0, 0)
         self._shadow.setBlurRadius(50)
         self._shadow_color = QColor(self._color)
         self._shadow_color.setAlpha(255)
-        self._attribute = {"UUID": self._id.hex, "name": "line"}
 
         self.setFlags(QGraphicsItem.ItemIsSelectable)
         logging.info("曲线创建成功")
@@ -131,7 +127,3 @@ class LineWidget(QGraphicsPathItem):
                      QPointF(end_x, end_y), self._end_pos)
 
         self.setPath(path)
-
-    @property
-    def attribute(self):
-        return self._attribute

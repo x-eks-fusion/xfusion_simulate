@@ -49,7 +49,7 @@ class VisualGraphScene(QGraphicsScene):
 
         super().drawBackground(painter, rect)
 
-        lines, drak_lines = self.cal_grid_lines(rect)
+        lines, drak_lines = self.calGridLines(rect)
         # 画普通的线
         painter.setPen(self._normal_line_pen)
         painter.drawLines(lines)
@@ -58,7 +58,7 @@ class VisualGraphScene(QGraphicsScene):
         painter.setPen(self._dark_line_pen)
         painter.drawLines(drak_lines)
 
-    def cal_grid_lines(self, rect):
+    def calGridLines(self, rect):
         left, right, top, bottom = math.floor(rect.left()), math.floor(
             rect.right()), math.floor(rect.top()), math.floor(rect.bottom())
 

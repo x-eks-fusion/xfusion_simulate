@@ -1,10 +1,9 @@
 from PySide6.QtWidgets import QGraphicsEllipseItem
 from PySide6.QtGui import QColor, QPen, QBrush
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject
 
 from widgets.XF_LineWidget import LineWidget
 
-import uuid
 import logging
 
 """
@@ -12,7 +11,7 @@ import logging
 """
 
 
-class Pin(QGraphicsEllipseItem):
+class Pin(QGraphicsEllipseItem, QObject):
     INPUT = 0
     OUTPUT = 1
     INPUT_OUTPUT = 2
@@ -22,13 +21,13 @@ class Pin(QGraphicsEllipseItem):
     UP = 2
     DOWN = 3
 
-    def __init__(self, x, y, radius, pin_type, color, dir, parent=None):
+    def __init__(self, x, y, radius, pin_type, color, dir, parent, name=""):
         super().__init__(x, y, radius, radius, parent)
-        self.uuid = uuid.uuid4()
         self.scene_pos = self.mapToScene(
             self.boundingRect().center())  # 获取当前位置
         self.pin_type = pin_type  # 引脚类型 (Input, Output, etc.)
         self._color = color
+        self.name = name
         self.setBrush(QBrush(QColor(color)))  # 设置颜色
         self.setPen(QPen(QColor("black")))  # 设置边框
         self.setFlags(
@@ -38,9 +37,8 @@ class Pin(QGraphicsEllipseItem):
         self._dir = dir
         self._original_dir = dir
         self.parent = parent
-        self._attribute = {"UUID": self.uuid.hex}  # 对外展示的属性
-        self.connect_pins = []  # 连接的pin
-        self.connect_lines = []  # 连接的线段
+        self.connect_pins: list[Pin] = []  # 连接的pin
+        self.connect_lines: list[LineWidget] = []  # 连接的线段
 
         self._current_line = None
         self._start_pin = None
@@ -168,61 +166,50 @@ class Pin(QGraphicsEllipseItem):
     def getDir(self):
         return self._dir
 
-    def getLines(self):
-        return self.connect_lines
+    def getAllConnectDevices(self):
+        devices = []
+        for connect_pin in self.connect_pins:
+            devices.append(connect_pin.parent)
+        return list(set(devices))  # 去重
 
-    @property
-    def attribute(self) -> dict:
-        self._attribute["sence_pos_x"] = self.scene_pos.x()
-        self._attribute["sence_pos_y"] = self.scene_pos.y()
-        self._attribute["is_connected"] = bool(len(self.connect_pins)),
-        return self._attribute
+    def getConnectPins(self):
+        return self.connect_pins
+
+    def getName(self):
+        return self.name
 
 
 class InputPin(Pin):
-    def __init__(self, name, x, y, radius, dir, parent=None):
-        super().__init__(x, y, radius, Pin.INPUT, "purple", dir, parent=parent)
-        self._attribute["type"] = "input"
-        self._attribute["name"] = name
+    def __init__(self, name, x, y, radius, dir, parent):
+        super().__init__(x, y, radius, Pin.INPUT, "purple", dir, parent=parent, name=name)
 
 
 class OutputPin(Pin):
-    def __init__(self, name, x, y, radius, dir, parent=None):
-        super().__init__(x, y, radius, Pin.OUTPUT, "blue", dir, parent=parent)
-        self._attribute["type"] = "output"
-        self._attribute["name"] = name
+    def __init__(self, name, x, y, radius, dir, parent):
+        super().__init__(x, y, radius, Pin.OUTPUT, "blue", dir, parent=parent, name=name)
 
 
 class InputOutputPin(Pin):
-    def __init__(self, name, x, y, radius, dir, parent=None):
-        super().__init__(x, y, radius, Pin.INPUT_OUTPUT, "yellow", dir, parent=parent)
-        self._attribute["type"] = "input_output"
-        self._attribute["name"] = name
+    def __init__(self, name, x, y, radius, dir, parent):
+        super().__init__(x, y, radius, Pin.INPUT_OUTPUT,
+                         "yellow", dir, parent=parent, name=name)
 
 
 class GNDOut(Pin):
-    def __init__(self, x, y, radius, dir, parent=None):
-        super().__init__(x, y, radius, Pin.OUTPUT, "green", dir, parent=parent)
-        self._attribute["type"] = "output"
-        self._attribute["name"] = "GND"
+    def __init__(self, x, y, radius, dir, parent):
+        super().__init__(x, y, radius, Pin.OUTPUT, "green", dir, parent=parent, name="GND")
 
 
 class GNDIn(Pin):
-    def __init__(self, x, y, radius, dir, parent=None):
-        super().__init__(x, y, radius, Pin.INPUT, "green", dir, parent=parent)
-        self._attribute["type"] = "input"
-        self._attribute["name"] = "GND"
+    def __init__(self, x, y, radius, dir, parent):
+        super().__init__(x, y, radius, Pin.INPUT, "green", dir, parent=parent, name="GND")
 
 
 class VCCOut(Pin):
-    def __init__(self, x, y, radius, dir, parent=None):
-        super().__init__(x, y, radius, Pin.OUTPUT, "red", dir, parent=parent)
-        self._attribute["type"] = "output"
-        self._attribute["name"] = "VCC"
+    def __init__(self, x, y, radius, dir, parent):
+        super().__init__(x, y, radius, Pin.OUTPUT, "red", dir, parent=parent, name="VCC")
 
 
 class VCCIn(Pin):
-    def __init__(self, x, y, radius, dir, parent=None):
-        super().__init__(x, y, radius, Pin.INPUT, "red", dir, parent=parent)
-        self._attribute["type"] = "input"
-        self._attribute["name"] = "VCC"
+    def __init__(self, x, y, radius, dir, parent):
+        super().__init__(x, y, radius, Pin.INPUT, "red", dir, parent=parent, name="VCC")

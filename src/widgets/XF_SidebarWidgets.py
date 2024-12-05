@@ -93,7 +93,7 @@ class SidebarWidget(QWidget):
             comp.setExpanded(True)
 
     def addComp(self, title, widget, collapsed=True, stretch=10):
-        comp = self.contentWidget.addComponent(
+        comp = self.contentWidget.addDevice(
             title, widget, collapsed, stretch)
         self.comps[title] = [comp, True]
         logging.debug(f"added menu:{title}")
@@ -142,14 +142,14 @@ class ToolBoxWidget(QWidget):
         self.setObjectName('ToolBox')
 
         # 记录comps
-        self.comps: list[ToolBoxComponentWidget] = []
+        self.comps: list[ToolBoxDeviceWidget] = []
 
         self.compAdded.connect(self.onCompAdded)
 
     # 添加组件
-    def addComponent(self, title, contentWidget, collapsed=True, stretch=10):
+    def addDevice(self, title, contentWidget, collapsed=True, stretch=10):
 
-        comp = ToolBoxComponentWidget(
+        comp = ToolBoxDeviceWidget(
             self, collapsed=collapsed, default_stretch=stretch)
         comp.setupWidget(title, contentWidget)
 
@@ -184,7 +184,7 @@ class ToolBoxWidget(QWidget):
         self.compCollapsed()
 
 
-class ToolBoxComponentWidget(QWidget):
+class ToolBoxDeviceWidget(QWidget):
 
     collapseSig = Signal(bool)
 

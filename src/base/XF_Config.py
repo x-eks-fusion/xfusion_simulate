@@ -28,7 +28,7 @@ class Config:
             raise RuntimeError("配置已经初始化，禁止重复初始化！")
         if config_file:
             cls.config_file = abspath(config_file)
-            instance.load_from_file(cls.config_file)
+            instance.loadFromFile(cls.config_file)
             instance._initialized = True
         else:
             raise ValueError("必须提供配置文件路径进行初始化。")
@@ -77,7 +77,7 @@ class Config:
             raise ValueError("配置文件中缺少 GroupConfig 部分。")
         return self.config["GroupConfig"]
 
-    def load_from_file(self, file_path):
+    def loadFromFile(self, file_path):
         """
         从 JSON 文件加载动态配置，支持错误处理。
         """
@@ -94,7 +94,7 @@ class Config:
         """
         重新加载配置文件，覆盖当前配置。
         """
-        self.load_from_file(self.config_file)
+        self.loadFromFile(self.config_file)
         print(f"配置文件 {self.config_file} 已重新加载。")
 
 

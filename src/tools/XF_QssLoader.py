@@ -15,11 +15,11 @@ class QSSLoadTool:
         qss_file.open(QFile.ReadOnly)
         # 需要将QByteArray转成str utf-8的编码
         qss_str = str(qss_file.readAll(), 'utf-8')
-        qss_str = QSSLoadTool.replace_url_file(qss_str)
+        qss_str = QSSLoadTool.replaceUrlFile(qss_str)
         w.setStyleSheet(qss_str)
 
     @staticmethod
-    def replace_url_file(qss_str: str) -> str:
+    def replaceUrlFile(qss_str: str) -> str:
         p = re.compile("url *[(](.*?)[)]", re.S)
         c_l = re.findall(p, qss_str)
         for item in c_l:

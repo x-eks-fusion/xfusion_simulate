@@ -1,8 +1,8 @@
-from widgets.XF_ComponentWidget import Component
+from widgets.XF_DeviceWidget import Device
 from widgets.XF_PinWidget import InputPin, OutputPin, Pin
 
 
-class LED(Component):
+class LED(Device):
     color_path = {
         "off": "src/svg/LED/LED_off.svg",
         "red": "src/svg/LED/LED_red.svg",
@@ -20,8 +20,12 @@ class LED(Component):
         self.color = color
         super().__init__(x, y, "LED", 2, self.color_path["off"], parent=parent)
         # 添加引脚
-        self.addPin(InputPin("-", 45, 80, 10, Pin.RIGHT, self))
-        self.addPin(OutputPin("+", 25, 80, 10, Pin.DOWN, self))
+        self.positive = InputPin("+", 25, 80, 10, Pin.DOWN, self)
+        self.negative = InputPin("-", 45, 80, 10, Pin.RIGHT, self)
+        self.addPin(self.positive)
+        self.addPin(self.negative)
+        self.negative_level = -1
+        self.positive_level = -1
         self.is_on = False
         self.setVerticalMirror()
 
@@ -51,3 +55,20 @@ class LED(Component):
         self._attribute["status"] = self.is_on
         self._attribute["color"] = self.color
         return self._attribute
+
+    # LED的运行逻辑
+    def onRunning(self, kwargs):
+        # 如果是发送电平，更新输入电平
+        type = kwargs["type"]
+        if type != Device.DATA_TYPE_LEVEL_TRANSMIT:
+            return
+        pin = kwargs["input"]["pin"]
+        if pin == self.positive:
+            self.positive_level = kwargs["value"]
+        elif pin == self.negative:
+            self.negative_level = kwargs["value"]
+        # 根据电平判断 LED 状态
+        if self.positive_level == 1 and self.negative_level == 0:
+            self.on()
+        else:
+            self.off()

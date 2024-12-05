@@ -6,6 +6,8 @@ import PySide6
 from widgets.XF_NodeListWidget import NodeListWidget
 from widgets.XF_VariableTreeWidget import VariableTreeWidget
 
+from widgets.XF_DeviceWidget import Device
+
 import logging
 
 """
@@ -36,9 +38,16 @@ class VisualGraphView(QGraphicsView):
         self.setDragMode(QGraphicsView.RubberBandDrag)
 
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
-        self.scene().selectionChanged.connect(self.on_selection_changed)
+        self.scene().selectionChanged.connect(self.onSelectionChanged)
 
-    def on_selection_changed(self):
+    def paintEvent(self, event):
+        # 调用自定义方法
+        self.onSelectionChanged()
+
+        # 保持原有绘制逻辑
+        super().paintEvent(event)
+
+    def onSelectionChanged(self):
         try:
             selected_items = self.scene().selectedItems()
         except RuntimeError:
@@ -47,7 +56,8 @@ class VisualGraphView(QGraphicsView):
         if selected_items is []:
             return
         for item in selected_items:
-            attrs.append(item.attribute)
+            if isinstance(item, Device):
+                attrs.append(item.attribute)
         self.attributeShowed.emit(attrs)
 
     def mousePressEvent(self, event: PySide6.QtGui.QMouseEvent) -> None:
@@ -140,27 +150,27 @@ class VisualGraphView(QGraphicsView):
 
         return super().dropEvent(event)
 
-    def add_graph_node(self, node, pos=[0, 0]):
+    def addGraphNode(self, node, pos=[0, 0]):
         self.scene().addItem(node)
         if pos is not None:
             node.setPos(pos[0], pos[1])
 
-    def add_graph_node_with_cls(self, cls, pos, centered=False):
+    def addGraphNodeWithCls(self, cls, pos, centered=False):
 
-        components = cls(pos[0], pos[1])
+        devices = cls(pos[0], pos[1])
         if centered:
-            pos[0] = pos[0] - components.getWidth() / 2
+            pos[0] = pos[0] - devices.getWidth() / 2
 
-        self.add_graph_node(components, pos)
-        return components
+        self.addGraphNode(devices, pos)
+        return devices
 
-    def add_graph_node_with_cls_at_view_point(self,
+    def addGraphNodeWithClsAtViewPoint(self,
                                               cls,
                                               pos: QPointF,
                                               centered=True):
         scene_pos = self.mapToScene(int(pos.x()), int(pos.y()))
         try:
-            self.add_graph_node_with_cls(
+            self.addGraphNodeWithCls(
                 cls, [scene_pos.x(), scene_pos.y()], centered=centered)
         except ValueError as e:
             logging.error(e)
