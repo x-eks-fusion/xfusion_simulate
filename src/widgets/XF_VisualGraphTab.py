@@ -3,7 +3,6 @@ from PySide6.QtGui import QUndoStack, QUndoCommand
 
 from widgets.XF_VisualGraphScene import VisualGraphScene
 from widgets.XF_VisualGraphView import VisualGraphView
-from tools.XF_Command import CutCommand
 
 import numpy as np
 
@@ -35,15 +34,3 @@ class VisualGraphTab(QWidget):
 
     def getSelectedItems(self):
         return self.scene.selectedItems()
-
-    def delItems(self):
-        command = CutCommand(self, 'del items')
-        self.addActionToStack('del items', command)
-
-    def addActionToStack(self, command_text, command: QUndoCommand):
-        self.undo_stack.beginMacro(command_text)
-        self.undo_stack.push(command)
-        self.undo_stack.endMacro()
-
-    def addNode(self, node):
-        self.view.addGraphNode(node, pos=None)

@@ -12,12 +12,16 @@ from tools.XF_QssLoader import QSSLoadTool, resource_path
 from base.XF_Config import Config
 import logging
 from base.XF_Log import logging_setup
+from base.XF_Server import ServerThread
 
 if __name__ == "__main__":
 
     # 加载config配置
     config = Config()
     config.init("./src/config.json")
+
+    # 启动服务
+    ServerThread().start()
 
     # 初始化日志
     logging_setup(logging.DEBUG)

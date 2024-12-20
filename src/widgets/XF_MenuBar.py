@@ -1,5 +1,6 @@
-from PySide6.QtWidgets import QWidget, QApplication
-from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtWidgets import QWidget, QApplication, QMenu
+from PySide6.QtGui import QAction, QKeySequence, QDesktopServices
+from PySide6.QtCore import QUrl
 
 """
 菜单栏
@@ -14,19 +15,15 @@ class MenuBar():
 
         fileMenu = self.menu.addMenu('&文件')
         fileMenu.addAction(self.newGraphAction)
-        fileMenu.addAction(self.newEditorAction)
         fileMenu.addSeparator()
         fileMenu.addAction(self.openAction)
-        fileMenu.addSeparator()
-        fileMenu.addAction(self.workspaceAction)
-        fileMenu.addSeparator()
         fileMenu.addAction(self.saveAction)
         fileMenu.addAction(self.saveAsAction)
         fileMenu.addAction(self.saveAllAction)
         fileMenu.addSeparator()
         fileMenu.addAction(self.quitAction)
 
-        self.recent_menu = fileMenu.addMenu(
+        self.recent_menu: QMenu = fileMenu.addMenu(
             QApplication.translate("MainWindow", '打开最近图像'))
         self.recent_menu.aboutToShow.connect(self.showRecentFiles)
 
@@ -39,8 +36,6 @@ class MenuBar():
         editMenu.addAction(self.pasteAction)
         editMenu.addSeparator()
         editMenu.addAction(self.delAction)
-        editMenu.addSeparator()
-        editMenu.addAction(self.commentAction)
         editMenu.addSeparator()
         editMenu.addAction(self.selectAllAction)
         editMenu.addAction(self.deselectAllAction)
@@ -60,18 +55,14 @@ class MenuBar():
         alignMenu.addAction(self.straightenEdgeAction)
 
         viewMenu = self.menu.addMenu('&视图')
-        viewMenu.addAction(self.showLeftSidebarAction)
         viewMenu.addAction(self.showRightSidebarAction)
-
-        renderMenu = self.menu.addMenu('&渲染')
-        renderMenu.addAction(self.renderSelectedAction)
-        renderMenu.addAction(self.renderAllNodesAction)
 
         runMenu = self.menu.addMenu('&执行')
         runMenu.addAction(self.runAction)
-        runMenu.addAction(self.runInBackAction)
 
         helpMenu = self.menu.addMenu('&帮助')
+        helpMenu.addAction(self.gotoCoralAction)
+        helpMenu.addAction(self.gotoXFusionDocsAction)
 
         # 最近文件列表,只记录文件绝对路径
         self.recent_files = []
@@ -81,16 +72,9 @@ class MenuBar():
             QApplication.translate("MainWindow", '新图像'), self.parent)
         self.newGraphAction.setShortcut(QKeySequence.New)
 
-        self.newEditorAction = QAction(
-            QApplication.translate("MainWindow", '新窗口'), self.parent)
-        self.newEditorAction.setShortcut(QKeySequence('Ctrl+Shift+N'))
-
         self.openAction = QAction(QApplication.translate(
             "MainWindow", '打开'), self.parent)
         self.openAction.setShortcut(QKeySequence('Ctrl+O'))
-
-        self.workspaceAction = QAction(QApplication.translate(
-            "MainWindow", '设置工作区路径'), self.parent)
 
         self.saveAction = QAction(QApplication.translate(
             "MainWindow", '保存'), self.parent)
@@ -136,10 +120,6 @@ class MenuBar():
         self.delAction.setShortcuts(
             [QKeySequence('X'), QKeySequence('Delete')])
 
-        self.commentAction = QAction(
-            QApplication.translate("MainWindow", '注释节点'), self.parent)
-        self.commentAction.setShortcut(QKeySequence('Ctrl+Alt+C'))
-
         # 全选和全不选
         self.selectAllAction = QAction(
             QApplication.translate("MainWindow", '全选'), self.parent)
@@ -150,27 +130,11 @@ class MenuBar():
             QApplication.translate("MainWindow", '取消全选'), self.parent)
         self.deselectAllAction.setShortcut(QKeySequence('Ctrl+D'))
 
-        self.showLeftSidebarAction = QAction(
-            QApplication.translate("MainWindow", '展示左侧栏'), self.parent)
-        self.showLeftSidebarAction.setShortcut(QKeySequence('Alt+Shift+L'))
-        self.showLeftSidebarAction.setCheckable(True)
-        self.showLeftSidebarAction.setChecked(True)
-
         self.showRightSidebarAction = QAction(
             QApplication.translate("MainWindow", '展示右侧栏'), self.parent)
         self.showRightSidebarAction.setShortcut(QKeySequence('Alt+Shift+R'))
         self.showRightSidebarAction.setCheckable(True)
         self.showRightSidebarAction.setChecked(True)
-
-        # renderAction
-        self.renderSelectedAction = QAction(
-            QApplication.translate("MainWindow", '渲染所选节点'), self.parent)
-        self.renderSelectedAction.setShortcut(QKeySequence('Ctrl+Alt+R'))
-
-        # renderAction
-        self.renderAllNodesAction = QAction(
-            QApplication.translate("MainWindow", '渲染整图'), self.parent)
-        self.renderAllNodesAction.setShortcut(QKeySequence('Ctrl+Shift+R'))
 
         # Align Action
         self.alignVCenterAction = QAction(
@@ -213,9 +177,22 @@ class MenuBar():
             "MainWindow", '运行'), self.parent)
         self.runAction.setShortcut(QKeySequence('Ctrl+R'))
 
-        self.runInBackAction = QAction(
-            QApplication.translate("MainWindow", '后台运行'), self.parent)
-        self.runInBackAction.setShortcut(QKeySequence('Ctrl+B'))
+        self.stopAction = QAction(QApplication.translate(
+            "MainWindow", '停止'), self.parent)
+        self.stopAction.setShortcut(QKeySequence('Ctrl+Shift+R'))
+
+        self.gotoCoralAction = QAction(
+            QApplication.translate("MainWindow", '跳转到 Coral 社区'), self.parent)
+        self.gotoCoralAction.triggered.connect(self.gotoCoral)
+        self.gotoXFusionDocsAction = QAction(
+            QApplication.translate("MainWindow", '跳转到 XFusion 文档'), self.parent)
+        self.gotoXFusionDocsAction.triggered.connect(self.gotoXFusionDocs)
+
+    def gotoCoral(self):
+        QDesktopServices.openUrl(QUrl("https://coral-zone.cc"))
+
+    def gotoXFusionDocs(self):
+        QDesktopServices.openUrl(QUrl("https://coral-zone.cc/#/document"))
 
     def showRecentFiles(self):
 
@@ -230,12 +207,9 @@ class MenuBar():
         if len(actions) > 0:
             self.recent_menu.addActions(actions)
         else:
-            no_recent = QAction('No recent file.', self)
+            no_recent = QAction('No recent file.', self.parent)
             no_recent.setDisabled(True)
             self.recent_menu.addAction(no_recent)
 
         self.recent_menu.addSeparator()
         self.recent_menu.addAction(self.clearMenuAction)
-
-    def connect(self, action: QAction, func):
-        action.triggered.connect(func)

@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
 from PySide6.QtGui import QPen, QBrush, QTransform
 from PySide6.QtSvgWidgets import QGraphicsSvgItem
-from PySide6.QtCore import Qt, QThread, QObject, Signal
+from PySide6.QtCore import QPointF, Qt, QCoreApplication, QEvent
 
 from widgets.XF_PinWidget import Pin
 import uuid
@@ -9,76 +9,76 @@ import logging
 from abc import abstractmethod
 
 
-class Device(QGraphicsRectItem, QObject):
-    data = Signal(dict)
-    DATA_TYPE_LEVEL_TRANSMIT = 0
-    DATA_TYPE_LEVEL_REQUEST = 1
-    DATA_TYPE_LEVEL_RESPOSE = 2
-    DATA_TYPE_DATA_TRANSMIT = 3
-    DATA_TYPE_DATA_RECEIVE = 4
+class Device(QGraphicsRectItem):
 
-    def __init__(self, x, y, name, scale=1, svg_path=None, parent=None):
-        super().__init__(x, y, 1, 1, parent)
+    MSG_TYPE_LEVEL_TRANSMIT = 0
+    MSG_TYPE_LEVEL_REQUEST = 1
+    MSG_TYPE_LEVEL_RESPOSE = 2
+    MSG_TYPE_DATA_TRANSMIT = 3
+    MSG_TYPE_DATA_RECEIVE = 4
+
+    def __init__(self, name, scale=1, svg_path=None):
+        super().__init__()
         self.name = name
-        self.pins = []  # 存储所有 Pin
+        self.pins = {}  # 存储所有 Pin
         self.setBrush(QBrush(Qt.transparent))  # 背景颜色
         self.setPen(QPen(Qt.transparent))  # 边框颜色
         self.scale = scale
-        self._id = uuid.uuid4()
-        self._attribute = {"UUID": self._id.hex, "name": name}
-        self.scene_pos = self.scenePos()  # 获取当前位置
-        self.is_in_thread = False
+        self._id = uuid.uuid4().hex
+        self._attribute = {"UUID": self._id, "name": name}
+        self.scene_pos = None  # 获取当前位置
 
         # SVG 图像
         self.svg_item = None
+        self.is_start = False
         self.setFlags(
             QGraphicsRectItem.ItemIsMovable |  # 支持拖动
             QGraphicsRectItem.ItemIsSelectable |  # 支持选中
             QGraphicsRectItem.ItemSendsGeometryChanges  # 更新场景
-
         )
         if svg_path:
             self.loadSvg(svg_path)
 
     def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value):
-        for pin in self.pins:
-            pin.onMoved()
-        self.scene_pos = self.scenePos()
+        if change == QGraphicsItem.ItemPositionHasChanged:
+            for pin in self.pins.values():
+                pin.onMoved()
+            self.scene_pos = self.scenePos()
         return super().itemChange(change, value)
 
     def setVerticalMirror(self):
         transform = QTransform()
         transform.scale(-1, 1)  # 水平镜像
         self.setTransform(transform)
-        for pin in self.pins:
+        for pin in self.pins.values():
             pin.setVerticalMirror()
 
     def setHorizontalMirror(self):
         transform = QTransform()
         transform.scale(1, -1)  # 垂直镜像
         self.setTransform(transform)
-        for pin in self.pins:
+        for pin in self.pins.values():
             pin.setHorizontalMirror()
 
     def setAllMirror(self):
         transform = QTransform()
         transform.scale(-1, -1)  # 水平垂直镜像
         self.setTransform(transform)
-        for pin in self.pins:
+        for pin in self.pins.values():
             pin.setAllMirror()
 
     def setNoMirror(self):
         transform = QTransform()
         transform.scale(1, 1)  # 水平垂直不镜像
         self.setTransform(transform)
-        for pin in self.pins:
+        for pin in self.pins.values():
             pin.setNoMirror()
 
     def setRotation(self, angle):
         if angle % 90 != 0:
             return
         angle = angle % 360
-        for i in self.pins:
+        for i in self.pins.values():
             i.setRota(angle)
         super().setRotation(angle)
 
@@ -94,8 +94,6 @@ class Device(QGraphicsRectItem, QObject):
         self.width = svg_rect.width() * self.scale
         self.height = svg_rect.height() * self.scale
         self.setRect(0, 0, self.width, self.height)
-        # 设置 QGraphicsSvgItem 的位置与 QGraphicsRectItem 对齐
-        # self.svg_item.setPos(self.scenePos().x(), self.scenePos().y())
 
     def getWidth(self):
         return self.width
@@ -106,32 +104,32 @@ class Device(QGraphicsRectItem, QObject):
     def addPin(self, pin):
         """添加 Pin 到组件"""
         if isinstance(pin, Pin):
-            self.pins.append(pin)
+            self.pins[pin.getName()] = pin
             pin.setParentItem(self)  # 将 Pin 添加为组件的子元素
         else:
             raise ValueError("只能添加 Pin 对象")
 
-    def removeAllLines(self):
-        for pin in self.pins:
-            pin.removeAllLines()
-
     def getPinsByType(self, pin_type):
         """根据类型获取 Pins"""
-        return [pin for pin in self.pins if pin.pin_type == pin_type]
+        return [pin for pin in self.pins.values() if pin.pin_type == pin_type]
 
     def start(self):
-        self.thread = QThread()
-        self.moveToThread(self.thread)
-        for pin in self.pins:
-            pin.moveToThread(self.thread)
-        self.data.connect(self.onRunning)
-        self.is_in_thread = True
-        self.thread.start()
+        self.is_start = True
+        self.setFlags(
+            QGraphicsRectItem.ItemIsSelectable |  # 支持选中
+            QGraphicsRectItem.ItemSendsGeometryChanges  # 更新场景
+        )
 
     def stop(self):
-        self.thread.quit()  # 停止事件循环
-        self.thread.wait()  # 等待线程结束
-        self.is_in_thread = False
+        self.is_start = False
+        self.setFlags(
+            QGraphicsRectItem.ItemIsMovable |  # 支持拖动
+            QGraphicsRectItem.ItemIsSelectable |  # 支持选中
+            QGraphicsRectItem.ItemSendsGeometryChanges  # 更新场景
+        )
+
+    def isStart(self):
+        return self.is_start
 
     @property
     def attribute(self) -> dict:
@@ -140,7 +138,7 @@ class Device(QGraphicsRectItem, QObject):
         return self._attribute
 
     @abstractmethod
-    def onRunning(self, kwargs):
+    def onRunning(self, kwargs: dict = {}):
         """
         用于书写具体处理运行逻辑的函数，该函数会在组件 start() 之后被调用
         先判断 IO 连接是否正确，
@@ -149,10 +147,10 @@ class Device(QGraphicsRectItem, QObject):
         """
         logging.debug("onRunning")
 
-    def sendData(self, kwargs: dict = {}):
-        self.data.emit(kwargs)
-
     def transmitData(self, pin: Pin, type, value):
+        if pin.getConnectPins() == []:
+            return
+        logging.debug(f"{pin.name} transmitData")
         transmit_data = {}
         transmit_data["type"] = type
         transmit_data["value"] = value
@@ -163,6 +161,41 @@ class Device(QGraphicsRectItem, QObject):
         transmit_data["input"] = {}
         for connect_pin in pin.connect_pins:
             transmit_data["input"]["device"] = connect_pin.parent
-            transmit_data["input"]["device_uuid"] = pin.parent._id.hex
-            transmit_data["input"]["pin"] = pin
-            self.sendData(transmit_data.copy())
+            transmit_data["input"]["device_uuid"] = connect_pin.parent._id.hex
+            transmit_data["input"]["pin"] = connect_pin
+            connect_pin.parent.onRunning(transmit_data.copy())
+
+    def remove(self):
+        if self.is_start:
+            return
+        for pin in self.pins.values():
+            for line in pin.getConnectLines():
+                line.remove()
+        self.scene().removeItem(self)
+
+    def dump(self):
+        data = {}
+        data["x"] = self.attribute["sence_pos_x"]
+        data["y"] = self.attribute["sence_pos_y"]
+        data["uuid"] = self.attribute["UUID"]
+        data["connect"] = {}
+        for pin in self.pins.values():
+            data["connect"][pin.getName()] = []
+            for connect_line in pin.getConnectLines():
+                if connect_line.getStartPin() == pin:
+                    connect_pin = connect_line.getEndPin()
+                    data["connect"][pin.getName()].append(
+                        (connect_pin.parent.getID(), connect_pin.getName()))
+        return data
+
+    def getID(self):
+        return self._id
+
+    @classmethod
+    def load(cls, scene, data):
+        dev = cls()
+        scene.addItem(dev)
+        dev.setPos(data["x"], data["y"])
+        dev._id = data["uuid"]
+        dev.attribute["UUID"] = dev._id
+        return dev

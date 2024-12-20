@@ -17,7 +17,7 @@ class LineWidget(QGraphicsPathItem):
 
         self._start_pin = start_pin
         self._dir = dir
-        self._start_pos = start_pin.scene_pos
+        self._start_pos = start_pin.getPosition()
         self._end_pin = None
         self._end_pos = self._start_pos
         if self._dir == self.LEFT:
@@ -28,6 +28,8 @@ class LineWidget(QGraphicsPathItem):
             self._end_dir = self.DOWN
         elif self._dir == self.DOWN:
             self._end_dir = self.UP
+
+        self.is_start = False
 
         # 初始画笔
         self._color = color
@@ -45,6 +47,12 @@ class LineWidget(QGraphicsPathItem):
 
         self.setFlags(QGraphicsItem.ItemIsSelectable)
         logging.info("曲线创建成功")
+
+    def getStartPin(self):
+        return self._start_pin
+
+    def getEndPin(self):
+        return self._end_pin
 
     def setEndPoint(self, end_pos):
         self._end_pos = end_pos
@@ -72,10 +80,10 @@ class LineWidget(QGraphicsPathItem):
 
     # 更新路径
     def updatePath(self):
-        self._start_pos = self._start_pin.scene_pos
+        self._start_pos = self._start_pin.getPosition()
 
         if self._end_pin is not None:
-            self._end_pos = self._end_pin.scene_pos
+            self._end_pos = self._end_pin.getPosition()
 
         path = QPainterPath(self._start_pos)
 
@@ -127,3 +135,20 @@ class LineWidget(QGraphicsPathItem):
                      QPointF(end_x, end_y), self._end_pos)
 
         self.setPath(path)
+
+    def start(self):
+        self.is_start = True
+
+    def stop(self):
+        self.is_start = False
+
+    def remove(self):
+        if self.is_start:
+            return
+        if self.scene() is None:
+            return
+        self.scene().removeItem(self)
+        self._start_pin.connect_lines.remove(self)
+        self._end_pin.connect_lines.remove(self)
+        self._start_pin.connect_pins.remove(self._end_pin)
+        self._end_pin.connect_pins.remove(self._start_pin)

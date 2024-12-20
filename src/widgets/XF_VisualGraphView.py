@@ -1,10 +1,9 @@
-from PySide6.QtWidgets import QGraphicsView, QApplication, QTreeWidgetItem
+from PySide6.QtWidgets import QGraphicsView
 from PySide6.QtCore import QPointF, Signal, QEvent
-from PySide6.QtGui import QPainter, Qt, QMouseEvent, QKeyEvent
+from PySide6.QtGui import QPainter, Qt, QMouseEvent
 import PySide6
 
 from widgets.XF_NodeListWidget import NodeListWidget
-from widgets.XF_VariableTreeWidget import VariableTreeWidget
 
 from widgets.XF_DeviceWidget import Device
 
@@ -135,8 +134,6 @@ class VisualGraphView(QGraphicsView):
     def dragMoveEvent(self, event) -> None:
         if isinstance(event.source(), NodeListWidget):
             event.acceptProposedAction()
-        elif isinstance(event.source(), VariableTreeWidget):
-            event.acceptProposedAction()
         else:
             return super().dragMoveEvent(event)
 
@@ -144,33 +141,34 @@ class VisualGraphView(QGraphicsView):
         if isinstance(event.source(), NodeListWidget):
             self.nodeDropped.emit(event.pos())
 
-        if isinstance(event.source(), VariableTreeWidget):
-            self.variableDropped.emit(event.pos(),
-                                      event.modifiers() == Qt.AltModifier)
-
         return super().dropEvent(event)
 
-    def addGraphNode(self, node, pos=[0, 0]):
-        self.scene().addItem(node)
-        if pos is not None:
-            node.setPos(pos[0], pos[1])
-
-    def addGraphNodeWithCls(self, cls, pos, centered=False):
-
-        devices = cls(pos[0], pos[1])
-        if centered:
-            pos[0] = pos[0] - devices.getWidth() / 2
-
-        self.addGraphNode(devices, pos)
-        return devices
-
-    def addGraphNodeWithClsAtViewPoint(self,
-                                              cls,
-                                              pos: QPointF,
-                                              centered=True):
+    def addGraphDevice(self,
+                       cls,
+                       pos: QPointF):
         scene_pos = self.mapToScene(int(pos.x()), int(pos.y()))
         try:
-            self.addGraphNodeWithCls(
-                cls, [scene_pos.x(), scene_pos.y()], centered=centered)
+            x = scene_pos.x()
+            y = scene_pos.y()
+            devices = cls()
+            self.scene().addItem(devices)
+            devices.setPos(x, y)
         except ValueError as e:
             logging.error(e)
+
+    def findDevice(self, id):
+        for i in self.items():
+            if isinstance(i, Device) and i.getID() == id:
+                return i
+        return None
+
+    def connectPinWithInfo(self, id, connect_info):
+        start_dev = self.findDevice(id)
+        for key, values in connect_info.items():
+            if values == []:
+                continue
+            start_pin = start_dev.pins[key]
+            for value in values:
+                end_dev = self.findDevice(value[0])
+                end_pin = end_dev.pins[value[1]]
+                start_pin.connect(end_pin)

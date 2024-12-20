@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QGraphicsEllipseItem
 from PySide6.QtGui import QColor, QPen, QBrush
-from PySide6.QtCore import Qt, QObject
+from PySide6.QtCore import Qt
 
 from widgets.XF_LineWidget import LineWidget
 
@@ -11,7 +11,7 @@ import logging
 """
 
 
-class Pin(QGraphicsEllipseItem, QObject):
+class Pin(QGraphicsEllipseItem):
     INPUT = 0
     OUTPUT = 1
     INPUT_OUTPUT = 2
@@ -23,8 +23,7 @@ class Pin(QGraphicsEllipseItem, QObject):
 
     def __init__(self, x, y, radius, pin_type, color, dir, parent, name=""):
         super().__init__(x, y, radius, radius, parent)
-        self.scene_pos = self.mapToScene(
-            self.boundingRect().center())  # 获取当前位置
+
         self.pin_type = pin_type  # 引脚类型 (Input, Output, etc.)
         self._color = color
         self.name = name
@@ -42,6 +41,18 @@ class Pin(QGraphicsEllipseItem, QObject):
 
         self._current_line = None
         self._start_pin = None
+
+    def getPosition(self):
+        return self.mapToScene(self.boundingRect().center())
+
+    def getConnectLines(self):
+        return self.connect_lines
+
+    def getName(self):
+        return self.name
+
+    def getConnectPins(self):
+        return self.connect_pins
 
     def setVerticalMirror(self):
         if self._original_dir == self.LEFT:
@@ -145,18 +156,6 @@ class Pin(QGraphicsEllipseItem, QObject):
             self._start_pin = None
         super().mouseReleaseEvent(event)
 
-    def removeLine(self, line):
-        for connect_line in self.connect_lines:
-            if connect_line == line:
-                self.scene().removeItem(connect_line)
-                self.connect_lines.remove(connect_line)
-
-    def removeAllLines(self):
-        for connect_pin in self.connect_pins:
-            for connect_line in self.connect_lines:
-                connect_pin.removeLine(connect_line)
-        self.connect_lines.clear()
-
     def onMoved(self):
         self.scene_pos = self.mapToScene(
             self.boundingRect().center())
@@ -172,11 +171,16 @@ class Pin(QGraphicsEllipseItem, QObject):
             devices.append(connect_pin.parent)
         return list(set(devices))  # 去重
 
-    def getConnectPins(self):
-        return self.connect_pins
-
-    def getName(self):
-        return self.name
+    def connect(self, pin):
+        line = LineWidget(self, self._dir, self._color)
+        line.setEndPin(pin)
+        line.setEndDir(pin._dir)
+        self.connect_lines.append(line)
+        pin.connect_lines.append(line)
+        self.connect_pins.append(pin)
+        pin.connect_pins.append(self)
+        print(f"scene:{self.scene()}")
+        self.scene().addItem(line)
 
 
 class InputPin(Pin):

@@ -1,5 +1,6 @@
 from widgets.XF_DeviceWidget import Device
 from widgets.XF_PinWidget import InputPin, OutputPin, Pin
+import logging
 
 
 class LED(Device):
@@ -14,20 +15,18 @@ class LED(Device):
         "purple": "src/svg/LED/LED_purple.svg",
     }
 
-    def __init__(self, x, y, color="red", parent=None):
+    def __init__(self, color="red"):
         if color not in self.color_path.keys():
             raise ValueError("no led color support")
         self.color = color
-        super().__init__(x, y, "LED", 2, self.color_path["off"], parent=parent)
+        super().__init__("LED", 2, self.color_path["off"])
         # 添加引脚
-        self.positive = InputPin("+", 25, 80, 10, Pin.DOWN, self)
-        self.negative = InputPin("-", 45, 80, 10, Pin.RIGHT, self)
-        self.addPin(self.positive)
-        self.addPin(self.negative)
+        self.addPin(InputPin("negative", 25, 80, 10, Pin.DOWN, self))
+        self.addPin(InputPin("positive", 45, 80, 10, Pin.RIGHT, self))
         self.negative_level = -1
         self.positive_level = -1
         self.is_on = False
-        self.setVerticalMirror()
+        # self.setVerticalMirror()
 
     def on(self):
         self.is_on = True
@@ -44,7 +43,7 @@ class LED(Device):
         else:
             self.loadSvg(self.color_path["off"])
 
-    def set_color(self, color):
+    def setColor(self, color):
         if color not in self.color_path.keys():
             raise ValueError("no led color support")
         self.loadSvg(self.color_path[color])
@@ -59,16 +58,17 @@ class LED(Device):
     # LED的运行逻辑
     def onRunning(self, kwargs):
         # 如果是发送电平，更新输入电平
+        logging.debug(f"{self.positive_level}, {self.positive_level}")
         type = kwargs["type"]
-        if type != Device.DATA_TYPE_LEVEL_TRANSMIT:
+        if type != Device.MSG_TYPE_LEVEL_TRANSMIT:
             return
         pin = kwargs["input"]["pin"]
-        if pin == self.positive:
+        if pin == self.pins["positive"]:
             self.positive_level = kwargs["value"]
-        elif pin == self.negative:
+        elif pin == self.pins["negative"]:
             self.negative_level = kwargs["value"]
-        # 根据电平判断 LED 状态
-        if self.positive_level == 1 and self.negative_level == 0:
+        # 根据电平判断 LED 状态, 只有正极高电平，负极低电平，LED亮
+        if self.positive_level == b'\x01' and self.negative_level == b'\x00':
             self.on()
         else:
             self.off()

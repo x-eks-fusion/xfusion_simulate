@@ -1,11 +1,12 @@
 from typing import Sequence
 from PySide6.QtWidgets import QApplication, QMainWindow, QToolBar, QMessageBox
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QSize, Signal
 from tools.XF_QssLoader import QSSLoadTool
 
 
 class ToolBarWidget(QToolBar):
+    run = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__("tool_bar", parent)
@@ -31,9 +32,11 @@ class ToolBarWidget(QToolBar):
         if self.running:
             self.action_paly.setIcon(play_icon)
             self.running = False
+            self.run.emit(False)
         else:
             self.action_paly.setIcon(pause_icon)
             self.running = True
+            self.run.emit(True)
 
     def toolBarAction(self):
         self.action_paly = self.addNewAction(

@@ -10,6 +10,14 @@ import math
 import PySide6
 from base.XF_Config import Config
 
+from widgets.XF_DeviceWidget import Device
+
+from devices.XF_MCU import MCU
+from devices.XF_LED import LED
+from devices.XF_Button import Button
+
+import logging
+
 """
 中央场景控件
 """
@@ -88,3 +96,31 @@ class VisualGraphScene(QGraphicsScene):
                 lines.append(line)
 
         return lines, drak_lines
+
+    def dump(self):
+        data = {}
+        items = self.items()
+        for item in items:
+            if isinstance(item, Device):
+                key = type(item).__name__
+                if key not in data:
+                    data[type(item).__name__] = []
+                data[type(item).__name__].append(item.dump())
+        return data
+
+    def load(self, data):
+        for key, values in data.items():
+            if key == "MCU":
+                for value in values:
+                    MCU.load(self, value)
+            elif key == "LED":
+                for value in values:
+                    LED.load(self, value)
+            elif key == "Button":
+                for value in values:
+                    Button.load(self, value)
+        for key, values in data.items():
+            for view in self.views():
+                logging.info(f"value:{value}")
+                for value in values:
+                    view.connectPinWithInfo(value["uuid"], value["connect"])

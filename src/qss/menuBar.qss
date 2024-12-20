@@ -1,5 +1,5 @@
 QToolBar {
-    background-color: #2d2d30;       /* 工具栏背景颜色 */
+    background-color: #313131;       /* 工具栏背景颜色 */
     border: 1px solid #3c3c3c;      /* 工具栏边框颜色 */
     padding: 5px;                   /* 工具栏内边距 */
     spacing: 8px;                   /* 按钮之间的间距 */
