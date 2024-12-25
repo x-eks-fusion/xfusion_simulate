@@ -82,6 +82,7 @@ class VisualGraphWindow(QMainWindow):
             self.editor.view.setDragMode(QGraphicsView.NoDrag)
             self.editor.scene.clearSelection()
             self.model_tree.setDragEnabled(False)
+            logging.debug("start")
             for item in self.editor.scene.items():
                 if hasattr(item, "start"):
                     item.start()
@@ -89,6 +90,7 @@ class VisualGraphWindow(QMainWindow):
             self.is_run = False
             self.editor.view.setDragMode(QGraphicsView.RubberBandDrag)
             self.model_tree.setDragEnabled(True)
+            logging.debug("stop")
             for item in self.editor.scene.items():
                 if hasattr(item, "stop"):
                     item.stop()
@@ -167,12 +169,10 @@ class VisualGraphWindow(QMainWindow):
     def onStop(self):
         self.is_run = False
         self.tool_bar.stop()
-        self.run(self.is_run)
 
     def onRun(self):
         self.is_run = True
         self.tool_bar.run()
-        self.run(self.is_run)
 
     def setupLayout(self):
         # 设置中间splitter

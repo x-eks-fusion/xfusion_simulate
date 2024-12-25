@@ -34,6 +34,10 @@ class MCU(Device, QObject):
         self.timer.start()
         self.transmitData(self.gnd, Device.MSG_TYPE_LEVEL_TRANSMIT, b'\x00')
         self.transmitData(self.vcc, Device.MSG_TYPE_LEVEL_TRANSMIT, b'\x01')
+        while not send.empty():
+            send.get()
+        while not recv.empty():
+            recv.get()
 
     def stop(self):
         self.timer.stop()

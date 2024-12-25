@@ -24,7 +24,7 @@ if __name__ == "__main__":
     ServerThread().start()
 
     # 初始化日志
-    logging_setup(logging.DEBUG, True)
+    logging_setup(logging.DEBUG, False)
 
     app = QApplication([])
     app.setStyle('fusion')
