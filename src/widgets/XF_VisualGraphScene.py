@@ -11,6 +11,7 @@ import PySide6
 from base.XF_Config import Config
 
 from widgets.XF_DeviceWidget import Device
+from widgets.XF_LineWidget import LineWidget
 
 from devices.XF_MCU import MCU
 from devices.XF_LED import LED
@@ -101,26 +102,32 @@ class VisualGraphScene(QGraphicsScene):
         data = {}
         items = self.items()
         for item in items:
-            if isinstance(item, Device):
+            if isinstance(item, Device) or isinstance(item, LineWidget):
                 key = type(item).__name__
                 if key not in data:
                     data[type(item).__name__] = []
                 data[type(item).__name__].append(item.dump())
+        logging.info(f"dump data:{data}")
         return data
 
-    def load(self, data):
+    def load(self, data, is_same_id=True):
         for key, values in data.items():
             if key == "MCU":
                 for value in values:
-                    MCU.load(self, value)
+                    dev = MCU.load(self, value, is_same_id)
+                    dev.setSelected(True)
             elif key == "LED":
                 for value in values:
-                    LED.load(self, value)
+                    dev = LED.load(self, value, is_same_id)
+                    dev.setSelected(True)
             elif key == "Button":
                 for value in values:
-                    Button.load(self, value)
+                    dev = Button.load(self, value, is_same_id)
+                    dev.setSelected(True)
+
         for key, values in data.items():
+            if key != "LineWidget":
+                continue
             for view in self.views():
-                logging.info(f"value:{value}")
                 for value in values:
-                    view.connectPinWithInfo(value["uuid"], value["connect"])
+                    view.connectWithInfo(value)

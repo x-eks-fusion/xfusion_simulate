@@ -25,7 +25,6 @@ class MenuBar():
 
         self.recent_menu: QMenu = fileMenu.addMenu(
             QApplication.translate("MainWindow", '打开最近图像'))
-        self.recent_menu.aboutToShow.connect(self.showRecentFiles)
 
         editMenu = self.menu.addMenu('&编辑')
         editMenu.addAction(self.undoAction)
@@ -40,25 +39,26 @@ class MenuBar():
         editMenu.addAction(self.selectAllAction)
         editMenu.addAction(self.deselectAllAction)
 
-        alignMenu = self.menu.addMenu('&对齐')
-        alignMenu.addAction(self.alignVCenterAction)
-        alignMenu.addAction(self.alignHCenterAction)
-        alignMenu.addSeparator()
-        alignMenu.addAction(self.verticalDistributedAction)
-        alignMenu.addAction(self.horizontalDistributedAction)
-        alignMenu.addSeparator()
-        alignMenu.addAction(self.alignLeftAction)
-        alignMenu.addAction(self.alignRightAction)
-        alignMenu.addAction(self.alignTopAction)
-        alignMenu.addAction(self.alignBottomAction)
-        alignMenu.addSeparator()
-        alignMenu.addAction(self.straightenEdgeAction)
+        # alignMenu = self.menu.addMenu('&对齐')
+        # alignMenu.addAction(self.alignVCenterAction)
+        # alignMenu.addAction(self.alignHCenterAction)
+        # alignMenu.addSeparator()
+        # alignMenu.addAction(self.verticalDistributedAction)
+        # alignMenu.addAction(self.horizontalDistributedAction)
+        # alignMenu.addSeparator()
+        # alignMenu.addAction(self.alignLeftAction)
+        # alignMenu.addAction(self.alignRightAction)
+        # alignMenu.addAction(self.alignTopAction)
+        # alignMenu.addAction(self.alignBottomAction)
+        # alignMenu.addSeparator()
+        # alignMenu.addAction(self.straightenEdgeAction)
 
         viewMenu = self.menu.addMenu('&视图')
         viewMenu.addAction(self.showRightSidebarAction)
 
         runMenu = self.menu.addMenu('&执行')
         runMenu.addAction(self.runAction)
+        runMenu.addAction(self.stopAction)
 
         helpMenu = self.menu.addMenu('&帮助')
         helpMenu.addAction(self.gotoCoralAction)
@@ -74,15 +74,15 @@ class MenuBar():
 
         self.openAction = QAction(QApplication.translate(
             "MainWindow", '打开'), self.parent)
-        self.openAction.setShortcut(QKeySequence('Ctrl+O'))
+        self.openAction.setShortcut(QKeySequence.Open)
 
         self.saveAction = QAction(QApplication.translate(
             "MainWindow", '保存'), self.parent)
-        self.saveAction.setShortcut(QKeySequence('Ctrl+S'))
+        self.saveAction.setShortcut(QKeySequence.Save)
 
         self.saveAsAction = QAction(
             QApplication.translate("MainWindow", '另存为'), self.parent)
-        self.saveAsAction.setShortcut(QKeySequence('Ctrl+Shift+S'))
+        self.saveAsAction.setShortcut(QKeySequence.SaveAs)
 
         self.saveAllAction = QAction(
             QApplication.translate("MainWindow", '保存所有'), self.parent)
@@ -90,45 +90,44 @@ class MenuBar():
 
         self.quitAction = QAction(QApplication.translate(
             "MainWindow", '退出'), self.parent)
-        self.quitAction.setShortcut(QKeySequence('Alt+F4'))
+        self.quitAction.setShortcut(QKeySequence.Quit)
 
         self.clearMenuAction = QAction(
             QApplication.translate("MainWindow", '清除最近图表'))
 
         self.copyAction = QAction(QApplication.translate(
             "MainWindow", '复制'), self.parent)
-        self.copyAction.setShortcut(QKeySequence('Ctrl+C'))
+        self.copyAction.setShortcut(QKeySequence.Copy)
 
         self.cutAction = QAction(QApplication.translate(
             "MainWindow", '剪切'), self.parent)
-        self.cutAction.setShortcut(QKeySequence('Ctrl+X'))
+        self.cutAction.setShortcut(QKeySequence.Cut)
 
         self.pasteAction = QAction(
             QApplication.translate("MainWindow", '粘贴'), self.parent)
-        self.pasteAction.setShortcut(QKeySequence('Ctrl+V'))
+        self.pasteAction.setShortcut(QKeySequence.Paste)
 
         self.undoAction = QAction(QApplication.translate(
             "MainWindow", '撤销'), self.parent)
-        self.undoAction.setShortcut(QKeySequence('Ctrl+Z'))
+        self.undoAction.setShortcut(QKeySequence.Undo)
 
         self.redoAction = QAction(QApplication.translate(
             "MainWindow", '恢复'), self.parent)
-        self.redoAction.setShortcut(QKeySequence('Ctrl+Y'))
+        self.redoAction.setShortcut(QKeySequence.Redo)
 
         self.delAction = QAction(QApplication.translate(
             "MainWindow", '删除所选'), self.parent)
-        self.delAction.setShortcuts(
-            [QKeySequence('X'), QKeySequence('Delete')])
+        self.delAction.setShortcuts(QKeySequence.Delete)
 
         # 全选和全不选
         self.selectAllAction = QAction(
             QApplication.translate("MainWindow", '全选'), self.parent)
-        self.selectAllAction.setShortcut(QKeySequence('Ctrl+A'))
+        self.selectAllAction.setShortcut(QKeySequence.SelectAll)
 
         # 全选和全不选
         self.deselectAllAction = QAction(
             QApplication.translate("MainWindow", '取消全选'), self.parent)
-        self.deselectAllAction.setShortcut(QKeySequence('Ctrl+D'))
+        self.deselectAllAction.setShortcut(QKeySequence('Ctrl+Shift+A'))
 
         self.showRightSidebarAction = QAction(
             QApplication.translate("MainWindow", '展示右侧栏'), self.parent)
@@ -193,23 +192,3 @@ class MenuBar():
 
     def gotoXFusionDocs(self):
         QDesktopServices.openUrl(QUrl("https://coral-zone.cc/#/document"))
-
-    def showRecentFiles(self):
-
-        self.recent_menu.clear()
-
-        actions = []
-        for filepath in self.recent_files:
-            action = QAction(filepath, self)
-            # action.triggered.connect(partial(self.load_recent_graph,filepath))
-            actions.append(action)
-
-        if len(actions) > 0:
-            self.recent_menu.addActions(actions)
-        else:
-            no_recent = QAction('No recent file.', self.parent)
-            no_recent.setDisabled(True)
-            self.recent_menu.addAction(no_recent)
-
-        self.recent_menu.addSeparator()
-        self.recent_menu.addAction(self.clearMenuAction)

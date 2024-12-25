@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsRectItem
-from PySide6.QtGui import QPen, QBrush, QTransform
+from PySide6.QtGui import QPen, QBrush, QTransform, QUndoCommand
 from PySide6.QtSvgWidgets import QGraphicsSvgItem
-from PySide6.QtCore import QPointF, Qt, QCoreApplication, QEvent
+from PySide6.QtCore import Qt
 
 from widgets.XF_PinWidget import Pin
 import uuid
@@ -157,45 +157,61 @@ class Device(QGraphicsRectItem):
         transmit_data["output"] = {}
         transmit_data["output"]["device"] = self
         transmit_data["output"]["pin"] = pin
-        transmit_data["output"]["device_uuid"] = self._id.hex
+        transmit_data["output"]["device_uuid"] = self._id
         transmit_data["input"] = {}
         for connect_pin in pin.connect_pins:
             transmit_data["input"]["device"] = connect_pin.parent
-            transmit_data["input"]["device_uuid"] = connect_pin.parent._id.hex
+            transmit_data["input"]["device_uuid"] = connect_pin.parent._id
             transmit_data["input"]["pin"] = connect_pin
             connect_pin.parent.onRunning(transmit_data.copy())
-
-    def remove(self):
-        if self.is_start:
-            return
-        for pin in self.pins.values():
-            for line in pin.getConnectLines():
-                line.remove()
-        self.scene().removeItem(self)
 
     def dump(self):
         data = {}
         data["x"] = self.attribute["sence_pos_x"]
         data["y"] = self.attribute["sence_pos_y"]
         data["uuid"] = self.attribute["UUID"]
-        data["connect"] = {}
-        for pin in self.pins.values():
-            data["connect"][pin.getName()] = []
-            for connect_line in pin.getConnectLines():
-                if connect_line.getStartPin() == pin:
-                    connect_pin = connect_line.getEndPin()
-                    data["connect"][pin.getName()].append(
-                        (connect_pin.parent.getID(), connect_pin.getName()))
         return data
 
     def getID(self):
         return self._id
 
     @classmethod
-    def load(cls, scene, data):
+    def load(cls, scene, data, is_same_id=True):
         dev = cls()
         scene.addItem(dev)
         dev.setPos(data["x"], data["y"])
-        dev._id = data["uuid"]
-        dev.attribute["UUID"] = dev._id
+        if is_same_id:
+            dev._id = data["uuid"]
+            dev.attribute["UUID"] = data["uuid"]
         return dev
+
+    def remove(self):
+        if self.is_start:
+            return None
+        return DeviceRemove(self, f"{self.name} remove")
+
+
+class DeviceRemove(QUndoCommand):
+    def __init__(self, device: Device, description="Device Rmove"):
+        super().__init__(description)
+        self.device = device
+        self.cmds = []
+        self.scene = self.device.scene()
+        logging.info(f"device remove:{description}")
+        self.init = True
+        for pin in self.device.pins.values():
+            for line in pin.getConnectLines():
+                cmd = line.remove()
+                if cmd is None:
+                    continue
+                self.cmds.append(cmd)
+
+    def undo(self):
+        self.scene.addItem(self.device)
+        for cmd in self.cmds:
+            cmd.undo()
+
+    def redo(self):
+        for cmd in self.cmds:
+            cmd.redo()
+        self.scene.removeItem(self.device)

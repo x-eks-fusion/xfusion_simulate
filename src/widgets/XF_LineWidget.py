@@ -1,4 +1,4 @@
-from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath
+from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath, QUndoCommand
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsPathItem
 from PySide6.QtWidgets import QGraphicsDropShadowEffect
 from PySide6.QtCore import Qt, QPointF
@@ -32,7 +32,7 @@ class LineWidget(QGraphicsPathItem):
         self.is_start = False
 
         # 初始画笔
-        self._color = color
+        self._color: str = color
         self._pen_default = QPen(QColor(self._color))
         self._pen_default.setWidthF(5)
 
@@ -144,11 +144,39 @@ class LineWidget(QGraphicsPathItem):
 
     def remove(self):
         if self.is_start:
+            return None
+        return LineRemove(self)
+
+    def dump(self):
+        data = {}
+        data["start_id"] = self.getStartPin().parent.getID()
+        data["start_pin"] = self.getStartPin().getName()
+        data["end_id"] = self.getEndPin().parent.getID()
+        data["end_pin"] = self.getEndPin().getName()
+        return data
+
+
+class LineRemove(QUndoCommand):
+    def __init__(self, line, description="Line Rmove"):
+        super().__init__(description)
+        self.line = line
+        self.scene = self.line.scene()
+        logging.info(f"device remove:{description}")
+
+    def undo(self):
+        if self.line.scene() is not None:
             return
-        if self.scene() is None:
+        self.scene.addItem(self.line)
+        self.line._start_pin.connect_lines.append(self.line)
+        self.line._end_pin.connect_lines.append(self.line)
+        self.line._start_pin.connect_pins.append(self.line._end_pin)
+        self.line._end_pin.connect_pins.append(self.line._start_pin)
+
+    def redo(self):
+        if self.line.scene() is None:
             return
-        self.scene().removeItem(self)
-        self._start_pin.connect_lines.remove(self)
-        self._end_pin.connect_lines.remove(self)
-        self._start_pin.connect_pins.remove(self._end_pin)
-        self._end_pin.connect_pins.remove(self._start_pin)
+        self.scene.removeItem(self.line)
+        self.line._start_pin.connect_lines.remove(self.line)
+        self.line._end_pin.connect_lines.remove(self.line)
+        self.line._start_pin.connect_pins.remove(self.line._end_pin)
+        self.line._end_pin.connect_pins.remove(self.line._start_pin)

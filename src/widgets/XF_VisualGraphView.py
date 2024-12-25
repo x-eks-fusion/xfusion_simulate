@@ -162,13 +162,9 @@ class VisualGraphView(QGraphicsView):
                 return i
         return None
 
-    def connectPinWithInfo(self, id, connect_info):
-        start_dev = self.findDevice(id)
-        for key, values in connect_info.items():
-            if values == []:
-                continue
-            start_pin = start_dev.pins[key]
-            for value in values:
-                end_dev = self.findDevice(value[0])
-                end_pin = end_dev.pins[value[1]]
-                start_pin.connect(end_pin)
+    def connectWithInfo(self, value):
+        start_dev = self.findDevice(value["start_id"])
+        end_dev = self.findDevice(value["end_id"])
+        start_pin = start_dev.pins[value["start_pin"]]
+        end_pin = end_dev.pins[value["end_pin"]]
+        start_pin.connect(end_pin)

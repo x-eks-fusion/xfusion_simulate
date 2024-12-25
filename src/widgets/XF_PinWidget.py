@@ -179,7 +179,6 @@ class Pin(QGraphicsEllipseItem):
         pin.connect_lines.append(line)
         self.connect_pins.append(pin)
         pin.connect_pins.append(self)
-        print(f"scene:{self.scene()}")
         self.scene().addItem(line)
 
 

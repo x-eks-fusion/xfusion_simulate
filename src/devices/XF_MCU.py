@@ -6,7 +6,7 @@ from PySide6.QtCore import QTimer, QObject
 
 class MCU(Device, QObject):
     def __init__(self):
-        super().__init__("MCU", 2, svg_path="src/svg/MCU.svg")
+        super().__init__("MCU", 2, svg_path="src/svg/MCU/MCU.svg")
         super(QObject, self).__init__()
 
         # 添加引脚

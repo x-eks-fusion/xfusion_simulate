@@ -7,9 +7,11 @@
 import os
 from PySide6.QtWidgets import QWidget, QMainWindow, QVBoxLayout, QFileDialog
 from PySide6.QtWidgets import QTabWidget, QApplication, QSplitter
-from PySide6.QtWidgets import QTreeWidgetItem, QGraphicsView
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtWidgets import QGraphicsView
+from PySide6.QtGui import QGuiApplication, QAction, QCursor
 from PySide6.QtCore import Qt, Slot, QPoint
+
+from functools import partial
 import logging
 
 from widgets.XF_NodeListWidget import NodeListWidget
@@ -28,6 +30,12 @@ from devices.XF_Button import Button
 from widgets.XF_ToolBarWidget import ToolBarWidget
 import pickle
 
+from PySide6.QtGui import QUndoStack
+
+from tools.XF_Remove import Remove
+from tools.XF_Paste import Paste
+from tools.XF_Create import Create
+
 
 class VisualGraphWindow(QMainWindow):
 
@@ -40,12 +48,15 @@ class VisualGraphWindow(QMainWindow):
         screen_size = screen.size()
         self.resize(screen_size.width()*0.95, screen_size.height()*0.9)
         self.center()
+
+        # 创建撤销堆栈
+        self.undo_stack = QUndoStack(self)
+
         self.splitter = QSplitter(Qt.Horizontal, self)
         # 初始化菜单栏
         self.menu_bar = MenuBar(self)
+        self.recent_files = []  # 保存往期的文件
         self.tool_bar = ToolBarWidget(self)
-        self.tool_bar.toolBarAction()
-        self.tool_bar.run.connect(self.run)
 
         self.actionTriggered()
         # 初始化右侧边栏
@@ -58,7 +69,8 @@ class VisualGraphWindow(QMainWindow):
         self.setupLayout()
 
         # 剪贴板
-        self.clipboard = QApplication.clipboard()
+        self.clipboard = None
+        self.is_run = False
 
     def show(self):
         super().show()
@@ -66,6 +78,7 @@ class VisualGraphWindow(QMainWindow):
 
     def run(self, is_run):
         if is_run:
+            self.is_run = True
             self.editor.view.setDragMode(QGraphicsView.NoDrag)
             self.editor.scene.clearSelection()
             self.model_tree.setDragEnabled(False)
@@ -73,6 +86,7 @@ class VisualGraphWindow(QMainWindow):
                 if hasattr(item, "start"):
                     item.start()
         else:
+            self.is_run = False
             self.editor.view.setDragMode(QGraphicsView.RubberBandDrag)
             self.model_tree.setDragEnabled(True)
             for item in self.editor.scene.items():
@@ -127,9 +141,38 @@ class VisualGraphWindow(QMainWindow):
         self.menu_bar.openAction.triggered.connect(self.dialogOpen)
         self.menu_bar.saveAction.triggered.connect(self.saveGraph)
         self.menu_bar.saveAsAction.triggered.connect(self.saveGraphAs)
+        self.menu_bar.saveAllAction.triggered.connect(self.saveAllGraph)
+        self.menu_bar.recent_menu.aboutToShow.connect(self.showRecentFiles)
+        self.menu_bar.clearMenuAction.triggered.connect(self.clearRecentFiles)
         self.menu_bar.quitAction.triggered.connect(self.quit)
         self.menu_bar.delAction.triggered.connect(self.removeSelected)
+        self.menu_bar.selectAllAction.triggered.connect(self.selectAll)
+        self.menu_bar.deselectAllAction.triggered.connect(self.deselectAll)
+        self.menu_bar.undoAction.triggered.connect(self.undo_stack.undo)
+        self.menu_bar.redoAction.triggered.connect(self.undo_stack.redo)
         self.menu_bar.showRightSidebarAction.triggered.connect(self.showRight)
+        self.menu_bar.copyAction.triggered.connect(self.copy)
+        self.menu_bar.pasteAction.triggered.connect(self.paste)
+        self.menu_bar.cutAction.triggered.connect(self.cut)
+        self.menu_bar.runAction.triggered.connect(self.onRun)
+        self.menu_bar.stopAction.triggered.connect(self.onStop)
+
+        self.tool_bar.run_sig.connect(self.run)
+        self.tool_bar.action_open.triggered.connect(self.dialogOpen)
+        self.tool_bar.action_save.triggered.connect(self.saveGraph)
+        self.tool_bar.action_new.triggered.connect(self.addOneTab)
+        self.tool_bar.action_undo.triggered.connect(self.undo_stack.undo)
+        self.tool_bar.action_redo.triggered.connect(self.undo_stack.redo)
+
+    def onStop(self):
+        self.is_run = False
+        self.tool_bar.stop()
+        self.run(self.is_run)
+
+    def onRun(self):
+        self.is_run = True
+        self.tool_bar.run()
+        self.run(self.is_run)
 
     def setupLayout(self):
         # 设置中间splitter
@@ -193,7 +236,8 @@ class VisualGraphWindow(QMainWindow):
             return
         cls = dragged_item.data(0, Qt.UserRole)
         if cls is not None:
-            self.editor.view.addGraphDevice(cls, pos)
+            cmd = Create(self.editor.view, cls, pos)
+            self.undo_stack.push(cmd)
 
     def center(self):
         screen = QGuiApplication.primaryScreen().geometry()
@@ -217,15 +261,19 @@ class VisualGraphWindow(QMainWindow):
     @Slot()
     def removeSelected(self):
         items = self.editor.getSelectedItems()
-        for item in items:
-            if hasattr(item, 'remove'):
-                item.remove()
+        cmd = Remove(items)
+        self.undo_stack.push(cmd)
 
     ############## 文件操作 #################
 
     def addToRecentFile(self, filepath):
         # 最近文件如果存在，则删除后重新插入最前面
-        pass
+        if filepath in self.recent_files:
+            self.recent_files.remove(filepath)
+
+        self.recent_files.insert(0, filepath)
+
+        logging.info(f'add file to recent:{self.recent_files}')
 
     @Slot()
     def saveGraph(self):
@@ -272,6 +320,58 @@ class VisualGraphWindow(QMainWindow):
             pickle.dump(data, file)
 
     @Slot()
+    def saveAllGraph(self):
+        for index in range(self.tabWidget.count()):
+            filepath = self.getRecordFilepath(index)
+            if filepath is None or not os.path.exists(filepath):
+                filepath, filetype = QFileDialog.getSaveFileName(
+                    self, '保存为', os.getcwd(), 'XFusion Simulation File (*.xfs)')
+
+                if filepath == '':
+                    logging.debug('文件选择已取消')
+                    return
+
+                if filepath[-4:] != ".xfs":
+                    filepath += ".xfs"
+
+                self.tabWidget.setTabText(index, os.path.basename(filepath))
+
+            self.addToRecentFile(filepath)
+            self.recordGraphOpened(filepath, index)
+            data = self.editor.scene.dump()
+            with open(filepath, "wb") as file:
+                pickle.dump(data, file)
+
+    def loadRecentGraph(self, filepath):
+        self.openGraph(filepath)
+
+    @Slot()
+    def showRecentFiles(self):
+
+        self.menu_bar.recent_menu.clear()
+
+        actions = []
+        for filepath in self.recent_files:
+            action = QAction(filepath, self)
+            action.triggered.connect(partial(self.loadRecentGraph, filepath))
+            actions.append(action)
+
+        if len(actions) > 0:
+            self.menu_bar.recent_menu.addActions(actions)
+        else:
+            no_recent = QAction('没有最近打开的文件', self)
+            no_recent.setDisabled(True)
+            self.menu_bar.recent_menu.addAction(no_recent)
+
+        self.menu_bar.recent_menu.addSeparator()
+        self.menu_bar.recent_menu.addAction(self.menu_bar.clearMenuAction)
+
+    @Slot()
+    def clearRecentFiles(self):
+        self.recent_files.clear()
+        self.showRecentFiles()
+
+    @Slot()
     def dialogOpen(self):
         # 弹出对话框选择文件
         filepath, filetype = QFileDialog.getOpenFileName(
@@ -298,6 +398,7 @@ class VisualGraphWindow(QMainWindow):
             # 创建一个新的tab，并将graphload到新的tab中
             self.addOneTab(filepath)
         else:
+            self.editor.scene.clear()
             self.tabWidget.setTabText(
                 self.tabWidget.currentIndex(), os.path.basename(filepath))
 
@@ -331,3 +432,34 @@ class VisualGraphWindow(QMainWindow):
     @Slot()
     def quit(self):
         QApplication.quit()
+
+    def copy(self):
+        selected_items = self.editor.stringifySelectItem()
+        if selected_items is None:
+            logging.info("nothing selected")
+        else:
+            self.clipboard = selected_items
+            global_pos = QCursor.pos()
+            self.clip_pos = self.editor.view.mapToScene(global_pos)
+
+    def paste(self):
+        if self.clipboard is None:
+            return
+        global_pos = QCursor.pos()
+        clip_pos = self.editor.view.mapToScene(global_pos)
+        dx = clip_pos.x() - self.clip_pos.x()
+        dy = clip_pos.y() - self.clip_pos.y()
+        cmd = Paste(self, dx, dy)
+        self.undo_stack.push(cmd)
+
+    def cut(self):
+        self.copy()
+        self.removeSelected()
+
+    def selectAll(self):
+        for item in self.editor.scene.items():
+            item.setSelected(True)
+
+    def deselectAll(self):
+        for item in self.editor.scene.items():
+            item.setSelected(False)
