@@ -165,6 +165,8 @@ class VisualGraphView(QGraphicsView):
     def connectWithInfo(self, value):
         start_dev = self.findDevice(value["start_id"])
         end_dev = self.findDevice(value["end_id"])
+        if start_dev is None or end_dev is None:
+            return
         start_pin = start_dev.pins[value["start_pin"]]
         end_pin = end_dev.pins[value["end_pin"]]
         start_pin.connect(end_pin)

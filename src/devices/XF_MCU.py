@@ -2,9 +2,12 @@ from widgets.XF_DeviceWidget import Device
 from widgets.XF_PinWidget import VCCOut, GNDOut, Pin, InputOutputPin
 from handlers.XF_BaseHandler import send, recv
 from PySide6.QtCore import QTimer, QObject
+from PySide6.QtWidgets import QGraphicsItem
+from PySide6.QtWidgets import QMessageBox
 
 
 class MCU(Device, QObject):
+
     def __init__(self):
         super().__init__("MCU", 2, svg_path="src/svg/MCU/MCU.svg")
         super(QObject, self).__init__()
@@ -25,6 +28,23 @@ class MCU(Device, QObject):
                 f"P{i}", 191, 52+18.7*(i-17), 10, Pin.RIGHT, self)
             self.pin.append(pin)
             self.addPin(pin)
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemSceneChange:
+            new_scene = value  # 获取即将添加的场景对象
+            if not new_scene:  # 如果目标场景存在
+                return super().itemChange(change, value)
+            for item in new_scene.items():
+                # 检查是否已经有相同类型的项
+                if isinstance(item, type(self)):
+                    msg_box = QMessageBox()
+                    msg_box.setIcon(QMessageBox.Warning)
+                    msg_box.setWindowTitle("XFusion")
+                    msg_box.setText("每个场景只能添加一个MCU")
+                    msg_box.setStandardButtons(QMessageBox.Ok)
+                    msg_box.exec()
+                    return None  # 阻止添加到场景
+        return super().itemChange(change, value)
 
     def start(self):
         super().start()
