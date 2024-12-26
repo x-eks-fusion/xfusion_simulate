@@ -86,4 +86,10 @@ class VisualGraphTab(QWidget):
                         if line["end_id"] == uuid_old:
                             line["end_id"] = value["uuid"]
             data["LineWidget"] = lines
+        else:
+            for values in data.values():
+                for value in values:
+                    value["x"] += dx
+                    value["y"] += dy
+                    value["uuid"] = uuid.uuid4().hex
         self.scene.load(data, True)
