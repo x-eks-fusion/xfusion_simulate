@@ -41,6 +41,7 @@ class MCUHandler:
         self.client_socket = client_socket
         self.msg_id = msg_id
         self.value = value
+        print(f"msg_id: {msg_id}, value: {value}")
         if msg_id == 0:
             self.configHandler()
         elif msg_id == 1:
@@ -66,9 +67,9 @@ class MCUHandler:
     def getHandler(self):
         response = json.loads(self.value.decode())
         handler = self.getHandlerByID(response["id"])
+
         if handler:
             send_value = handler.getHandler(response)
-            print(send_value)
             tlv = self.packTLV(self.msg_id, send_value)
             self.client_socket.send(tlv)
 

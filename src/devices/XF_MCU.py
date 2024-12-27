@@ -4,6 +4,7 @@ from handlers.XF_BaseHandler import send, recv
 from PySide6.QtCore import QTimer, QObject
 from PySide6.QtWidgets import QGraphicsItem
 from PySide6.QtWidgets import QMessageBox
+import logging
 
 
 class MCU(Device, QObject):
@@ -54,10 +55,6 @@ class MCU(Device, QObject):
         self.timer.start()
         self.transmitData(self.gnd, Device.MSG_TYPE_LEVEL_TRANSMIT, b'\x00')
         self.transmitData(self.vcc, Device.MSG_TYPE_LEVEL_TRANSMIT, b'\x01')
-        while not send.empty():
-            send.get()
-        while not recv.empty():
-            recv.get()
 
     def stop(self):
         self.timer.stop()
@@ -72,4 +69,5 @@ class MCU(Device, QObject):
         if send.empty():
             return
         data = send.get(block=False)
+        logging.info(f"send:{data}")
         self.transmitData(self.pin[data["pin"]], data["type"], data["value"])

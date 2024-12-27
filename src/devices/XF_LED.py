@@ -60,6 +60,10 @@ class LED(Device):
         # 如果是发送电平，更新输入电平
         logging.debug(f"{self.positive_level}, {self.positive_level}")
         type = kwargs["type"]
+        if type == Device.MSG_TYPE_LEVEL_REQUEST:
+            pin = kwargs["input"]["pin"]
+            level = kwargs["value"]
+            self.transmitData(pin, Device.MSG_TYPE_LEVEL_RESPOSE, level)
         if type != Device.MSG_TYPE_LEVEL_TRANSMIT:
             return
         pin = kwargs["input"]["pin"]
