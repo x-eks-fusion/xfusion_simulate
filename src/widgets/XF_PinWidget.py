@@ -41,6 +41,15 @@ class Pin(QGraphicsEllipseItem):
 
         self._current_line = None
         self._start_pin = None
+        self._is_start = False
+
+    @property
+    def is_start(self):
+        return self._is_start
+
+    @is_start.setter
+    def is_start(self, value):
+        self._is_start = value
 
     def getPosition(self):
         return self.mapToScene(self.boundingRect().center())
@@ -112,6 +121,8 @@ class Pin(QGraphicsEllipseItem):
 
     def mousePressEvent(self, event):
         """按下Pin时，开始绘制线路"""
+        if self._is_start:
+            return super().mousePressEvent(event)
         if event.button() == Qt.LeftButton:
             scene_pos = event.scenePos()  # 使用 scenePosition 获取位置
             item = self.scene().itemAt(scene_pos, self.transform())  # 获取场景中的对象
@@ -122,10 +133,12 @@ class Pin(QGraphicsEllipseItem):
                     self._start_pin, self._dir, self._color)
                 self.scene().addItem(self._current_line)
 
-        super().mousePressEvent(event)
+        return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         """拖动鼠标时动态绘制线路"""
+        if self._is_start:
+            return super().mouseMoveEvent(event)
         if self._current_line:  # 更新目标点为鼠标位置
             scene_pos = event.scenePos()  # 使用 scenePosition 获取位置
             item = self.scene().itemAt(scene_pos, self.transform())  # 获取场景中的对象
@@ -134,10 +147,13 @@ class Pin(QGraphicsEllipseItem):
                 self._current_line.setEndDir(item.getDir())
             self._current_line.setEndPoint(scene_pos)
             self._current_line.updatePath()
-        super().mouseMoveEvent(event)
+
+        return super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         """释放鼠标时确定线路是否有效"""
+        if self._is_start:
+            return super().mouseReleaseEvent(event)
         if self._current_line:
             scene_pos = event.scenePos()  # 使用 scenePosition 获取位置
             item = self.scene().itemAt(scene_pos, self.transform())  # 获取场景中的对象
@@ -154,7 +170,7 @@ class Pin(QGraphicsEllipseItem):
 
             self._current_line = None
             self._start_pin = None
-        super().mouseReleaseEvent(event)
+        return super().mouseReleaseEvent(event)
 
     def onMoved(self):
         self.scene_pos = self.mapToScene(

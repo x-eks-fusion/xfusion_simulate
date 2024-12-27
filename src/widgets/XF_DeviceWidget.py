@@ -119,6 +119,8 @@ class Device(QGraphicsRectItem):
             QGraphicsRectItem.ItemIsSelectable |  # 支持选中
             QGraphicsRectItem.ItemSendsGeometryChanges  # 更新场景
         )
+        for pin in self.pins.values():
+            pin.is_start = True
 
     def stop(self):
         self.is_start = False
@@ -127,6 +129,8 @@ class Device(QGraphicsRectItem):
             QGraphicsRectItem.ItemIsSelectable |  # 支持选中
             QGraphicsRectItem.ItemSendsGeometryChanges  # 更新场景
         )
+        for pin in self.pins.values():
+            pin.is_start = False
 
     def isStart(self):
         return self.is_start
